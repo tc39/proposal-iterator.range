@@ -4,7 +4,7 @@
 
 **Author**: Jack Works
 
-**Stage**: 0
+**Stage**: N/A
 
 This proposal describes adding a Number.range to JavaScript.
 
@@ -30,7 +30,7 @@ So there is no reason we shouldn't have a built-in implementation.
 -   -   Decremental (0, -1, -2, -3, ...)
 -   -   Step (0, 2, 4, 6, ...)
 -   -   -   Decimal step (0, 0.2, 0.4, ...)
--   Big Int Support
+-   BigInt Support
 -   -   Same as Arithmetic Sequence
 -   Infinite Sequence `Number.range(0, Infinity)` -> (0, 1, 2, 3, ...)
 
@@ -42,7 +42,7 @@ So there is no reason we shouldn't have a built-in implementation.
 
 ### Discussions
 
--   Do we need Geometric Progression? (1, 2, 4, 6, 8, ...)
+-   Do we need customizable behavior? Something like `Number.range(0, 1000, (previous, index) => next)`
 -   Should we add a new syntax like `2...3` instead of a `Number.range()`?
 -   Should we support `Number.range(x)` as an alias of `Number.range(0, x)`?
 -   How to deal with bad inputs?
