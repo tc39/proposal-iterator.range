@@ -42,14 +42,23 @@ So there is no reason we shouldn't have a built-in implementation.
 
 ### Discussions
 
+#### Discussions in Issue
+
+-   Remove `BigInt` support or move it to `BigInt.range`? (See: #4)
+-   How to deal with bad inputs?
+-   -   Direction mismatch `Number.range(0, 10, -5)` (See: #5, [here](#feature-assumptions-of-content-below-wait-for-discussing))
+-   -   Infinity in `from` and `to` (See: #6)
+-   Should we throw on `Number.range(42, 100, 1e-323)`? (See: #7)
+
+#### Others
+
 -   Do we need customizable behavior? Something like `Number.range(0, 1000, (previous, index) => next)`
 -   Should we add a new syntax like `2...3` instead of a `Number.range()`?
 -   Should we support `Number.range(x)` as an alias of `Number.range(0, x)`?
 -   How to deal with bad inputs?
 -   -   Type mismatch `Number.range(0, 5n)`
--   -   Direction mismatch `Number.range(0, 10, -5)`
 -   -   NaN
--   -   How do we calculate numbers? (The 0.30000000000000004 problem)
+-   How do we calculate numbers? (The 0.30000000000000004 problem)
 
 # Examples
 
@@ -78,6 +87,7 @@ Number.range( `from` , `to`, `step` )
 -   -   [c] throws an Error
 -   -   [d] Ignore the symbol of `step`, infer from `from` and `to`
 -   -   [e] Respect direction mismatch (and cause a dead loop)
+-   -   [f] yield nothing (See: #5)
 
 ### Signature
 
@@ -89,6 +99,12 @@ interface NumberConstructor {
     range(to: number): Iterator<number>
     range(to: BigInt): Iterator<BigInt>
 }
+// If accept #4
+interface BigIntConstructor {
+    range(from: BigInt, to: BigInt, step?: BigInt): Iterator<BigInt>
+    // If accept BigInt.range(to)
+    range(to: BigInt): Iterator<BigInt>
+}
 ```
 
 ### Context
@@ -98,6 +114,16 @@ Number.range is a generator.
 ### Input check
 
 Check the input type.
+
+#### If support #4. BigInt support goes to BigInt.range
+
+> 0. If `Type(from)` is **BigInt**, throw a **TypeError** exception.
+
+#### Else not support #4.
+
+> 0. Do nothing.
+
+Goes on...
 
 > 1. If `Type(from)` is not **number** or **BigInt**, throw a **TypeError** exception.
 
@@ -125,29 +151,38 @@ Quit early with NaN.
 > 8. If `to` is `NaN`, return undefined.
 > 9. If `step` is `NaN`, return undefined.
 
+Throws with Infinity
+
+> 10. If `from` is `Infinity`, throws a `RangeError` exception.
+> 11. If `step` is `Infinity`, throws a `RangeError` exception.
+
 Set undefined `step` to 1 or 1n
 
-> 10. If `Type(step)` is undefined, let `step` = `1` or `1n`
+> 12. If `Type(step)` is undefined, let `step` = `1` or `1n`
 
 ### Handle with direction mismatch
 
-> 11. If `step` is `0` or `0n`, throws an exception.
-> 12. let `ifIncrease` = `to > from`
+> 13. If `step` is `0` or `0n`, throws an exception.
+> 14. let `ifIncrease` = `to > from`
 
 #### c. Throws an exception
 
-> 13. let `ifStepIncrease` = `step > 0`
-> 14. if `ifIncrease` is not equal to `ifStepIncrease`, throws a `RangeError` exception.
+> 15. let `ifStepIncrease` = `step > 0`
+> 16. if `ifIncrease` is not equal to `ifStepIncrease`, throws a `RangeError` exception.
 
 #### d. Ignore the symbol of `step`, infer from `from` and `to`
 
-> 13. If `ifIncrease` is `true`, let `step` = `abs(step)`
-> 14. If `ifIncrease` is `false`, let `step` = `-abs(step)`
+> 15. If `ifIncrease` is `true`, let `step` = `abs(step)`
+> 16. If `ifIncrease` is `false`, let `step` = `-abs(step)`
 
 #### e. Respect direction mismatch (and cause a dead loop)
 
-> 13. Do nothing
-> 14. Do nothing
+> 15. Do nothing
+> 16. Do nothing
+
+#### f. Yield nothing
+
+> 15. return undefined
 
 ### Yield Numbers! (Not written in spec language yet)
 
@@ -155,7 +190,7 @@ These two implementations may act differently due to IEEE 754 floating point num
 
 #### Implementation 1
 
-> 15. Run the code below.
+> 17. Run the code below.
 
 ```js
 while (ifIncrease ? !(from >= to) : !(to >= from)) {
@@ -166,7 +201,7 @@ while (ifIncrease ? !(from >= to) : !(to >= from)) {
 
 #### Implementation 2
 
-> 15. Run the code below.
+> 17. Run the code below.
 
 ```js
 let count = typeof from === 'bigint' ? 1n : 1
@@ -180,7 +215,7 @@ while (ifIncrease ? !(now >= to) : !(to >= now)) {
 
 ### Over
 
-> 16. return undefined
+> 18. return undefined
 
 # Polyfill
 

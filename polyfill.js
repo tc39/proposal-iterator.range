@@ -1,8 +1,8 @@
 /// <reference path="./global.d.ts" />
-if (typeof Number.range !== 'function') {
+;(() => {
     /*
      * Behaviour flags
-     * This proposal is in early stages.
+     * This proposal is in early stage.
      * Use which in the end depends on community discussion.
      */
     /**
@@ -10,25 +10,31 @@ if (typeof Number.range !== 'function') {
      * This flag treat `range(to)` as `range(0, to)`
      */
     const isAcceptAlias = false
-    /** @type{"throw" | "ignore" | "noop"}
+    /**
+     * @type{"throw" | "ignore" | "noop" | "yield-no-value"}
      * This flag will affect how function treat direction mismatch
      * Like: Number.range(0, 999, -1)
      *
      * throw: Throws an exception
      * ignore: Ignore the symbol of step, infer from from and to
      * noop: Respect direction mismatch (and cause a dead loop)
+     * yield-no-value: return undefined, yield nothing
      */
     let directionMismatchPolicy = 'ignore'
-    /** @type{1 | 2}
+    /**
+     * @type{1 | 2}
      * This flag will choose which implementation will be used.
      * Implementation 1 and 2 may act differently due to IEEE 754 floating point number (but really?)
      * Discuss welcome!
      */
     const implementationVersion = 1
-
-    Object.defineProperty(Number, 'range', {
-        configurable: true,
-        value: function* range(from, to, step) {
+    /**
+     * @type{boolean}
+     * Open this flag will remove BigInt support and move it to `BigInt.range()`
+     */
+    const bigIntSupportMoveToBigIntConstructor = false
+    if (typeof Number.range !== 'function') {
+        function* range(from, to, step) {
             const paramsTypeError = new TypeError('All parameters must be number or BigInt')
             // 1.If Type(from) is not number or BigInt, throw a TypeError exception.
             if (typeof from !== 'number' && typeof from !== 'bigint') throw paramsTypeError
@@ -54,23 +60,31 @@ if (typeof Number.range !== 'function') {
             // 8. If to is NaN, return undefined.
             // 9. If step is NaN, return undefined.
             if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step)) return undefined
-            // 10. If Type(step) is undefined, let step = 1 or 1n
-            if (typeof step === 'undefined') step = typeof from === 'number' ? 1 : 1n
-            // 11. If step is 0 or 0n, throws an exception.
+            // 10. If `from` is `Infinity`, throws a `RangeError` exception.
+            // 11. If `step` is `Infinity`, throws a `RangeError` exception.
+            if (
+                (typeof from === 'number' && !Number.isFinite(from)) ||
+                (typeof step === 'number' && !Number.isFinite(step))
+            )
+                throw new RangeError()
+            if (typeof step === 'undefined')
+                // 12. If Type(step) is undefined, let step = 1 or 1n
+                step = typeof from === 'number' ? 1 : 1n
+            // 13. If step is 0 or 0n, throws an exception.
             if (step === 0 || step === 0n) throw new RangeError('Step cannot be 0')
-            // 12. let ifIncrease = to > from
+            // 14. let ifIncrease = to > from
             const ifIncrease = to > from
             switch (directionMismatchPolicy) {
                 case 'ignore':
-                    // 13. let ifStepIncrease = step > 0
-                    // 14. if ifIncrease is not equal to ifStepIncrease, throws a RangeError exception.
+                    // 15. let ifStepIncrease = step > 0
+                    // 16. if ifIncrease is not equal to ifStepIncrease, throws a RangeError exception.
                     const ifStepIncrease = step > 0
                     if (ifIncrease !== ifStepIncrease)
                         throw new RangeError('from, to and step does not follow the same direction')
                     break
                 case 'throw':
-                    // 13. If ifIncrease is true, let step = abs(step)
-                    // 14. If ifIncrease is false, let step = -abs(step)
+                    // 15. If ifIncrease is true, let step = abs(step)
+                    // 16. If ifIncrease is false, let step = -abs(step)
 
                     // Math.abs does not support BigInt currently.
                     const abs = x => (x >= (typeof x === 'bigint' ? 0n : 0) ? x : -x)
@@ -78,21 +92,24 @@ if (typeof Number.range !== 'function') {
                     else step = -abs(step)
                     break
                 case 'noop':
-                    // 13. Do nothing
-                    // 14. Do nothing
+                    // 15. Do nothing
+                    // 16. Do nothing
                     break
+                case 'yield-no-value':
+                    // 15. return undefined
+                    return undefined
                 default:
                     throw new Error('Bad implementation')
             }
             // Yield numbers!
             if (implementationVersion === 1) {
-                // 15. Run the code below.
+                // 17. Run the code below.
                 while (ifIncrease ? !(from >= to) : !(to >= from)) {
                     yield from
                     from = from + step
                 }
             } else if (implementationVersion === 2) {
-                // 15. Run the code below.
+                // 17. Run the code below.
                 let count = typeof from === 'bigint' ? 1n : 1
                 let now = from
                 while (ifIncrease ? !(now >= to) : !(to >= now)) {
@@ -103,9 +120,32 @@ if (typeof Number.range !== 'function') {
             } else {
                 throw new Error('Bad implementation')
             }
-            // 16. return undefined
+            // 18. return undefined
             return undefined
-        },
-        writable: true
-    })
-}
+        }
+        Object.defineProperty(Number, 'range', {
+            configurable: true,
+            value: (from, to, step) => {
+                if (bigIntSupportMoveToBigIntConstructor) {
+                    if (typeof from === 'bigint') {
+                        throw new TypeError('Number.range does not support BigInt. Use BigInt.range instead.')
+                    }
+                }
+                return range(from, to, step)
+            },
+            writable: true
+        })
+        if ('BigInt' in this) {
+            Object.defineProperty(BigInt, 'range', {
+                configurable: true,
+                value: (from, to, step) => {
+                    if (typeof from === 'number') {
+                        throw new TypeError('BigInt.range does not support number. Use Number.range instead.')
+                    }
+                    return range(from, to, step)
+                },
+                writable: true
+            })
+        }
+    }
+})()
