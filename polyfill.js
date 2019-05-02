@@ -32,129 +32,114 @@
      * Implementation 2 based on *
      * Discuss welcome!
      */
-    const implementationVersion = 1
-    /**
-     * @type{boolean}
-     * Open this flag will remove BigInt support and move it to `BigInt.range()`
-     */
-    const bigIntSupportMoveToBigIntConstructor = false
+    const implementationVersion = 2
     /** Polyfill start */
     const FakeBigIntConstructor = x => x
     /** @type {BigIntConstructor} */
     const BigInt = globalThis.BigInt || FakeBigIntConstructor
-    function* range(from, to, step) {
-        const paramsTypeError = new TypeError()
-        // 1.If Type(from) is not number or BigInt, throw a TypeError exception.
-        if (typeof from !== 'number' && typeof from !== 'bigint') throw paramsTypeError
-        if (isAcceptAlias) {
-            // 2. If Type(to) is undefined, let to = from, from = 0 or 0n
-            if (typeof to === 'undefined') {
-                to = from
-                from = typeof to === 'number' ? 0 : BigInt(0)
+    function rangeFactory(/** @type{'number' | 'bigint'} */ type, /** @type{0 | 0n} */ zero, /** @type{1 | 1n} */ one) {
+        return function* range(from, to, step) {
+            // 1.If Type(from) is not type, throw a TypeError exception.
+            if (typeof from !== type) throw new TypeError()
+            if (isAcceptAlias) {
+                // 2. If Type(to) is undefined, let to = from, from = zero
+                if (typeof to === 'undefined') {
+                    to = from
+                    from = zero
+                }
+            } else {
+                // 2. Do nothing
             }
-        } else {
-            // 2. Do nothing
-        }
-        // 3. If Type(to) is not number or BigInt, throw a TypeError exception.
-        // 4. If Type(step) is not number, undefined or BigInt, throw a TypeError exception.
-        // 5. If Type(from) is not equal to Type(to), throw a TypeError exception.
-        // 6. If Type(step) is not undefined, and Type(from) is not equal to Type(step), throw a TypeError exception.
-        if (typeof to !== 'number' && typeof to !== 'bigint') throw paramsTypeError
-        if (typeof step !== 'number' && typeof step !== 'undefined' && typeof step !== 'undefined')
-            throw paramsTypeError
-        if (typeof from !== typeof to) throw paramsTypeError
-        if (typeof step !== 'undefined' && typeof from !== typeof step) throw paramsTypeError
-        // 7. If from is NaN, return undefined.
-        // 8. If to is NaN, return undefined.
-        // 9. If step is NaN, return undefined.
-        if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step)) return undefined
-        // 10. If `from` is `Infinity`, throws a `RangeError` exception.
-        // 11. If `step` is `Infinity`, throws a `RangeError` exception.
-        if (
-            (typeof from === 'number' && !Number.isFinite(from)) ||
-            (typeof step === 'number' && !Number.isFinite(step))
-        )
-            throw new RangeError()
-        if (typeof step === 'undefined')
-            // 12. If Type(step) is undefined, let step = 1 or 1n
-            step = typeof from === 'number' ? 1 : BigInt(1)
-        // 13. If step is 0 or 0n, throws an exception.
-        if (step === 0 || step === BigInt(0)) throw new RangeError('Step cannot be 0')
-        // 14. let ifIncrease = to > from
-        const ifIncrease = to > from
-        switch (directionMismatchPolicy) {
-            case 'ignore':
-                // 15. let ifStepIncrease = step > 0
-                // 16. if ifIncrease is not equal to ifStepIncrease, throws a RangeError exception.
-                const ifStepIncrease = step > 0
-                if (ifIncrease !== ifStepIncrease)
-                    throw new RangeError('from, to and step does not follow the same direction')
-                break
-            case 'throw':
-                // 15. If ifIncrease is true, let step = abs(step)
-                // 16. If ifIncrease is false, let step = -abs(step)
+            // 3. If Type(step) is undefined, let step = one
+            if (typeof step === 'undefined') step = one
+            // 4. If Type(from) is not type, throw a TypeError exception.
+            // 5. If Type(to)   is not type, throw a TypeError exception.
+            // 6. If Type(step) is not type, throw a TypeError exception.
+            if (typeof from !== type || typeof to !== type || typeof step !== type) throw new TypeError()
+            // 7. If from is NaN, return undefined.
+            // 8. If to is NaN, return undefined.
+            // 9. If step is NaN, return undefined.
+            if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step)) return undefined
+            // 10. If `from` is `Infinity`, throws a `RangeError` exception.
+            // 11. If `step` is `Infinity`, throws a `RangeError` exception.
+            if (
+                (typeof from === 'number' && !Number.isFinite(from)) ||
+                (typeof step === 'number' && !Number.isFinite(step))
+            )
+                throw new RangeError()
+            // 12. If step is 0 or 0n, throws an exception.
+            if (step === zero) throw new RangeError()
+            // 13. let ifIncrease = to > from
+            const ifIncrease = to > from
+            switch (directionMismatchPolicy) {
+                case 'throw':
+                    // 15. let ifStepIncrease = step > zero
+                    // 16. if ifIncrease is not equal to ifStepIncrease, throws a RangeError exception.
+                    const ifStepIncrease = step > zero
+                    if (ifIncrease !== ifStepIncrease) throw new RangeError()
+                    break
+                case 'ignore':
+                    // 15. If ifIncrease is true, let step = abs(step)
+                    // 16. If ifIncrease is false, let step = -abs(step)
 
-                // Math.abs does not support BigInt currently.
-                const abs = x => (x >= (typeof x === 'bigint' ? BigInt(0) : 0) ? x : -x)
-                if (ifIncrease) step = abs(step)
-                else step = -abs(step)
-                break
-            case 'noop':
-                // 15. Do nothing
-                // 16. Do nothing
-                break
-            case 'yield-no-value':
-                // 15. return undefined
-                return undefined
-            default:
+                    // Math.abs does not support BigInt currently.
+                    const abs = x => (x >= (typeof x === 'bigint' ? BigInt(0) : 0) ? x : -x)
+                    if (ifIncrease) step = abs(step)
+                    else step = -abs(step)
+                    break
+                case 'noop':
+                    // 15. Do nothing
+                    // 16. Do nothing
+                    break
+                case 'yield-no-value':
+                    // 15. return undefined
+                    return undefined
+                default:
+                    throw new Error('Bad implementation')
+            }
+            // Yield numbers!
+            if (implementationVersion === 1) {
+                // 16. Run the code below.
+                while (ifIncrease ? !(from >= to) : !(to >= from)) {
+                    yield from
+                    from = from + step
+                }
+            } else if (implementationVersion === 2) {
+                // 16. Run the code below.
+                let count = one
+                let now = from
+                while (ifIncrease ? !(now >= to) : !(to >= now)) {
+                    yield now
+                    now = from + step * count
+                    count++
+                }
+            } else {
                 throw new Error('Bad implementation')
-        }
-        // Yield numbers!
-        if (implementationVersion === 1) {
-            // 17. Run the code below.
-            while (ifIncrease ? !(from >= to) : !(to >= from)) {
-                yield from
-                from = from + step
             }
-        } else if (implementationVersion === 2) {
-            // 17. Run the code below.
-            let count = typeof from === 'bigint' ? BigInt(1) : 1
-            let now = from
-            while (ifIncrease ? !(now >= to) : !(to >= now)) {
-                yield now
-                now = from + step * count
-                count++
-            }
-        } else {
-            throw new Error('Bad implementation')
+            // 17. return undefined
+            return undefined
         }
-        // 18. return undefined
-        return undefined
     }
     if (typeof Number.range !== 'function') {
+        // 0.a If this is `Number.range`, let `type` = `number`, `zero` = `0`, `one` = `1`
+        const type = 'number',
+            zero = 0,
+            one = 1
         Object.defineProperty(Number, 'range', {
             configurable: true,
-            value: (from, to, step) => {
-                if (bigIntSupportMoveToBigIntConstructor) {
-                    if (typeof from === 'bigint') {
-                        throw new TypeError('Number.range does not support BigInt. Use BigInt.range instead.')
-                    }
-                }
-                return range(from, to, step)
-            },
+            value: rangeFactory(type, zero, one),
             writable: true
         })
     }
     // If BigInt does not exist in globalThis, this will apply to FakeBigIntConstructor and then ignored.
     if (typeof BigInt.range !== 'function') {
+        // 0.b If this is `BigInt.range`, let `type` = `bigint`, `zero` = `0n`, `one` = `1n`
+        const type = 'bigint',
+            zero = BigInt(0),
+            one = BigInt(1)
         Object.defineProperty(BigInt, 'range', {
             configurable: true,
-            value: (from, to, step) => {
-                if (typeof from === 'number') {
-                    throw new TypeError('BigInt.range does not support number. Use Number.range instead.')
-                }
-                return range(from, to, step)
-            },
+            value: rangeFactory(type, zero, one),
             writable: true
         })
     }
