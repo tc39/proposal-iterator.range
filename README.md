@@ -88,16 +88,16 @@ replace all `0` with `0n`, `1` with `1n`
 ### Feature flags (Wait for discussing)
 
 -   `Number.range(to)` equals `Number.range(0, to)` (`isAcceptAlias` in polyfill)
--   -   [false](default) No
--   -   [true] Yes
+-   -   \[false](default) No
+-   -   \[true] Yes
 -   Handle with direction mismatch (`directionMismatchPolicy` in polyfill)
--   -   [throw] throws an Error
--   -   [ignore](default) Ignore the symbol of `step`, infer from `from` and `to`
--   -   [noop] Respect direction mismatch (and cause a dead loop)
--   -   [yield-no-value] yield nothing (See: #5)
+-   -   \[throw] throws an Error
+-   -   \[ignore](default) Ignore the symbol of `step`, infer from `from` and `to`
+-   -   \[noop] Respect direction mismatch (and cause a dead loop)
+-   -   \[yield-no-value] yield nothing (See: #5)
 -   How to generate new numbers (`implementationVersion` in polyfill)
--   -   [1] By add (`next = last + step`)
--   -   [2](default) By multiply (`next = from + count * step`)
+-   -   \[1] By add (`next = last + step`)
+-   -   \[2](default) By multiply (`next = from + count * step`)
 
 ### Signature
 
