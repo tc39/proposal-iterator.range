@@ -215,4 +215,4 @@ while (ifIncrease ? !(now >= to) : !(to >= now)) {
 
 # Polyfill
 
-Here is a [polyfill](./polyfill.js).
+Here is a [polyfill](https://github.com/Jack-Works/proposal-Number.range/blob/master/polyfill.js).
