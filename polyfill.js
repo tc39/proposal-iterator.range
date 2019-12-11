@@ -23,16 +23,6 @@
      * yield-no-value: return undefined, yield nothing
      */
     const directionMismatchPolicy = 'ignore'
-    /**
-     * @type{1 | 2}
-     * This flag will choose which implementation will be used.
-     * Implementation 1 and 2 may act differently due to IEEE 754 floating point number (but really?)
-     *
-     * Implementation 1 based on +
-     * Implementation 2 based on *
-     * Discuss welcome!
-     */
-    const implementationVersion = 2
     /** Polyfill start */
     const FakeBigIntConstructor = x => x
     /** @type {BigIntConstructor} */
@@ -98,23 +88,13 @@
                     throw new Error('Bad implementation')
             }
             // Yield numbers!
-            if (implementationVersion === 1) {
-                // 16. Run the code below.
-                while (ifIncrease ? !(from >= to) : !(to >= from)) {
-                    yield from
-                    from = from + step
-                }
-            } else if (implementationVersion === 2) {
-                // 16. Run the code below.
-                let count = one
-                let now = from
-                while (ifIncrease ? !(now >= to) : !(to >= now)) {
-                    yield now
-                    now = from + step * count
-                    count++
-                }
-            } else {
-                throw new Error('Bad implementation')
+            // 16. Run the code below.
+            let count = one
+            let now = from
+            while (ifIncrease ? !(now >= to) : !(to >= now)) {
+                yield now
+                now = from + step * count
+                count++
             }
             // 17. return undefined
             return undefined

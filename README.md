@@ -12,7 +12,7 @@ This proposal describes adding a `Number.range` and a `BigInt.range` to JavaScri
 
 The goal of this proposal is to add a built-in range function for iterating or other use cases.
 
-`range` is a very useful function. For example in Python, we can just write
+`range` is a very useful function. For example in Python, we can write
 
 ```python
 for i in range(5):
@@ -21,15 +21,13 @@ for i in range(5):
 
 but we can't do this in JavaScript. There are tons of npm packages implements a range function, tons of threads talking about ranges even in the es-discuss mail list.
 
-So there is no reason we shouldn't have a built-in implementation.
-
 ### Goals
 
 -   Arithmetic Sequence
 -   -   Incremental (0, 1, 2, 3, ...)
 -   -   Decremental (0, -1, -2, -3, ...)
 -   -   Step (0, 2, 4, 6, ...)
--   -   -   Decimal step (0, 0.2, 0.4, ...)
+-   -   -   Decimal step (Should we?) (0, 0.2, 0.4, ...)
 -   BigInt Support
 -   -   Same as Arithmetic Sequence
 -   Infinite Sequence `Number.range(0, Infinity)` -> (0, 1, 2, 3, ...)
@@ -38,7 +36,7 @@ So there is no reason we shouldn't have a built-in implementation.
 
 -   String Sequence (a, b, c, d, ...)
 -   Magic
--   -   E.g. `if (x in Number.range(0, 10))`
+-   -   E.g. `if (x in Number.range(0, 10))` (Kotlin have this feature)
 
 ### Discussions
 
@@ -57,7 +55,7 @@ If you interested in these topic, just open an issue!
 -   Do we need customizable behavior? Something like `Number.range(0, 1000, (previous, index) => next)`
 -   Should we add a new syntax like `2...3` instead of a `Number.range()`?
 -   Should we support `Number.range(x)` as an alias of `Number.range(0, x)`?
--   How do we calculate numbers? (The 0.30000000000000004 problem) (There're 2 version of implementation that may behave different in this case)
+-   Should we drop support for decimal step to avoid the 0.30000000000000004 problem?
 
 # Examples
 
@@ -95,9 +93,6 @@ replace all `0` with `0n`, `1` with `1n`
 -   -   \[ignore](default) Ignore the symbol of `step`, infer from `from` and `to`
 -   -   \[noop] Respect direction mismatch (and cause a dead loop)
 -   -   \[yield-no-value] yield nothing (See: #5)
--   How to generate new numbers (`implementationVersion` in polyfill)
--   -   \[1] By add (`next = last + step`)
--   -   \[2](default) By multiply (`next = from + count * step`)
 
 ### Signature
 
@@ -181,21 +176,6 @@ Throws with Infinity
 > 14. return undefined
 
 ### Yield Numbers! (Not written in spec language yet)
-
-These two implementations may act differently due to IEEE 754 floating point number
-
-#### Implementation 1
-
-> 16. Run the code below.
-
-```js
-while (ifIncrease ? !(from >= to) : !(to >= from)) {
-    yield from
-    from = from + step
-}
-```
-
-#### Implementation 2
 
 > 16. Run the code below.
 
