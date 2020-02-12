@@ -187,16 +187,16 @@ has the following properties:
 
 1. If `ifIncrease` is not equal to `ifStepIncrease`, throw a **RangeError** exception.
 
-##### If variant `directionMismatch` is `yield-no-value`
+###### If variant `directionMismatch` is `yield-no-value`
 
 1. If `ifIncrease` is not equal to `ifStepIncrease`, return `CreateIterResultObject(undeﬁned, true)`.
 
-##### If variant `directionMismatch` is `ignore`
+###### If variant `directionMismatch` is `ignore`
 
 1. If `ifIncrease` is `true`, let `step` = `abs(step)`
 1. Else let `step` = `-abs(step)`
 
-##### If variant `directionMismatch` is `noop`
+###### If variant `directionMismatch` is `noop`
 
 1. Do nothing
 
@@ -229,11 +229,15 @@ if (ifIncrease) {
 1. Let `now` be `from`
 1. If `ifIncrease` is true, let `condition` be `!(lastValue >= to)`, else let `condition` be `!(to >= lastValue)`
 1. Repeat, while `condition` evaluates to `true`,
-   a. Let `yielding` be `lastValue`
-   b. Set `lastValue` be `from` + (`step` \* `currentCount`)
-   c. Set `currentCount` to `currentCount` + `one`
-   d. Set `iterator`.[[currentCount]] to currentCount
-   e. Return `CreateIterResultObject(yielding, false).`
+    a. Let `yielding` be `lastValue`
+   
+    b. Set `lastValue` be `from` + (`step` \* `currentCount`)
+    
+    c. Set `currentCount` to `currentCount` + `one`
+    
+    d. Set `iterator`.[[currentCount]] to currentCount
+    
+    e. Return `CreateIterResultObject(yielding, false).`
       <!-- Finish -->
 1. return `CreateIterResultObject(undeﬁned, true)`.
 
