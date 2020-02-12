@@ -1,6 +1,6 @@
 # Number.range & BigInt.range
 
-**Champions**: Finding one...
+**Champions**: Jack Works
 
 **Author**: Jack Works
 
