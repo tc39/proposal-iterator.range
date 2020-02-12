@@ -200,27 +200,19 @@ has the following properties:
 
 1. Do nothing
 
-##### Variant block ended.
+###### Variant block ended.
 
 <!-- Yield numbers -->
 
 ```js
 let currentCount = one
 let lastValue = from
-if (ifIncrease) {
-    while (!(lastValue >= to)) {
-        let yielding = lastValue
-        lastValue = from + step * currentCount
-        currentCount++
-        yield yielding
-    }
-} else {
-    while (!(to >= lastValue)) {
-        let yielding = lastValue
-        lastValue = from + step * currentCount
-        currentCount++
-        yield yielding
-    }
+let condition = ifIncrease ? "!(lastValue >= to)" : "!(to >= lastValue)"
+while (eval(condition)) {
+    let yielding = lastValue
+    lastValue = from + step * currentCount
+    currentCount++
+    yield yielding
 }
 ```
 
