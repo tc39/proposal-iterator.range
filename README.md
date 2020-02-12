@@ -4,22 +4,28 @@
 
 **Author**: Jack Works
 
-**Stage**: N/A
+**Stage**: 0
 
 This proposal describes adding a `Number.range` and a `BigInt.range` to JavaScript.
 
-## Scope
+## Motivation
 
-The goal of this proposal is to add a built-in range function for iterating or other use cases.
+-   because we don't have it yet™
 
-`range` is a very useful function. For example in Python, we can write
+> Without these functions, the language feels incomplete, and is a paper cut to what could be a very polished experience. Bringing this into the platform will improve performance of the web, and developer productivity as they no longer have to implement these common functions.
+
+—— `String.prototype.{padStart,padEnd}`
+
+`range` is a very useful function. For example in Python:
 
 ```python
 for i in range(5):
-    // ....
+    # ...
 ```
 
-but we can't do this in JavaScript. There are tons of npm packages implements a range function, tons of threads talking about ranges even in the es-discuss mail list.
+At least 20 different implementations in [a single stackoverflow question](https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp).
+
+Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, range, fill-range, multi-integer-range, ……
 
 ### Goals
 
@@ -43,31 +49,30 @@ but we can't do this in JavaScript. There are tons of npm packages implements a 
 #### Discussions in Issue
 
 -   How to deal with bad inputs?
--   -   Direction mismatch `Number.range(0, 10, -5)` (See: #5, and [here](#feature-assumptions-of-content-below-wait-for-discussing))
--   -   Infinity in `from` and `to` (See: #6)
--   Should we throw on `Number.range(42, 100, 1e-323)`? (See: #7)
--   Should we support `BigInt.range(0n, Infinity)`? (See: #8)
+-   -   Direction mismatch `Number.range(0, 10, -5)` (See: [#5](https://github.com/Jack-Works/proposal-Number.range/issues/5), and [here](#feature-assumptions-of-content-below-wait-for-discussing))
+-   Should we throw on `Number.range(42, 100, 1e-323)`? (See: [#7](https://github.com/Jack-Works/proposal-Number.range/issues/7))
+-   Should we support `BigInt.range(0n, Infinity)`? (See: [#8](https://github.com/Jack-Works/proposal-Number.range/issues/8))
 
 #### Others
 
-If you interested in these topic, just open an issue!
+If you interested in these topics, please open an issue!
 
--   Do we need customizable behavior? Something like `Number.range(0, 1000, (previous, index) => next)`
--   Should we add a new syntax like `2...3` instead of a `Number.range()`?
--   Should we support `Number.range(x)` as an alias of `Number.range(0, x)`?
--   Should we drop support for decimal step to avoid the 0.30000000000000004 problem?
+-   Customizable behavior? Like `Number.range(0, 1000, (previous, index) => next)`
+-   Add a new syntax like `2...3` instead of a `Number.range()`?
+-   Support `Number.range(x)` as an alias of `Number.range(0, x)`?
+-   Drop support for decimal step to avoid the 0.30000000000000004 problem?
 
 # Examples
 
 ```js
-for (const i of Number.range(0, 43)) {
-    console.log(i) // 0 to 42
-}
+for (const i of Number.range(0, 43)) console.log(i) // 0 to 42
 
-const fakeData = [...Number.range(0, 21)].map(x => x ** 2)
+const mockData = [...Number.range(0, 21)].map(x => ({ age: x, name }))
 
 function* odd() {
-    for (const i of Number.range(0, Infinity)) if (i % 2 === 0) yield i
+    for (const i of Number.range(0, Infinity)) {
+        if (i % 2 === 0) yield i
+    }
 }
 ```
 
@@ -77,18 +82,12 @@ Number.range( `from` , `to`, `step` )
 
 BigInt.range( `from` , `to`, `step` )
 
-### About BigInt
-
-Behavior should be the same of `Number.range`,
-replace all `typeof x === 'number'` with `typeof x === 'bigint'`, and
-replace all `0` with `0n`, `1` with `1n`
-
 ### Feature flags (Wait for discussing)
 
 -   `Number.range(to)` equals `Number.range(0, to)` (`isAcceptAlias` in polyfill)
 -   -   \[false](default) No
 -   -   \[true] Yes
--   Handle with direction mismatch (`directionMismatchPolicy` in polyfill)
+-   Handle with direction mismatch (`directionMismatch` in polyfill)
 -   -   \[throw] throws an Error
 -   -   \[ignore](default) Ignore the symbol of `step`, infer from `from` and `to`
 -   -   \[noop] Respect direction mismatch (and cause a dead loop)
@@ -109,90 +108,173 @@ interface BigIntConstructor {
 }
 ```
 
-### Context
-
-Number.range is a generator.
-BigInt.range is a generator.
-
-### Constants
-
-> 0.a If this is `Number.range`, let `type` = `number`, `zero` = `0`, `one` = `1`
-> 0.b If this is `BigInt.range`, let `type` = `bigint`, `zero` = `0n`, `one` = `1n`
-
-### Input check
-
-Check the input type.
-
-> 1. If `Type(from)` is not `type`, throw a **TypeError** exception.
-
-#### isAcceptAlias === false: Not accept `Number.range(to)`
-
-> 2. Do nothing
-
-#### isAcceptAlias === true: Accept `Number.range(to)`
-
-> 2. If `Type(to)` is undefined, let `to` = `from`, `from` = `zero`
-
-Goes on...
-
-> 3. If `Type(step)` is `undefined`, let `step` = `one`
-> 4. If `Type(from)` is not `type`, throw a `TypeError` exception.
-> 5. If `Type(to)` is not `type`, throw a `TypeError` exception.
-> 6. If `Type(step)` is not `type`, throw a `TypeError` exception.
-
-Quit early with NaN.
-
-> 7. If `from` is `NaN`, return undefined.
-> 8. If `to` is `NaN`, return undefined.
-> 9. If `step` is `NaN`, return undefined.
-
-Throws with Infinity
-
-> 10. If `from` is `Infinity`, throws a `RangeError` exception.
-> 11. If `step` is `Infinity`, throws a `RangeError` exception.
-
-### Handle with direction mismatch
-
-> 12. If `step` is `zero`, throws an `RangeError` exception.
-> 13. let `ifIncrease` = `to > from`
-
-#### directionMismatchPolicy === throw: Throws an exception
-
-> 14. let `ifStepIncrease` = `step > zero`
-> 15. if `ifIncrease` is not equal to `ifStepIncrease`, throws a `RangeError` exception.
-
-#### directionMismatchPolicy === ignore: Ignore the symbol of `step`, infer from `from` and `to`
-
-> 14. If `ifIncrease` is `true`, let `step` = `abs(step)`
-> 15. If `ifIncrease` is `false`, let `step` = `-abs(step)`
-
-#### directionMismatchPolicy === noop: Respect direction mismatch (and cause a dead loop)
-
-> 14. Do nothing
-> 15. Do nothing
-
-#### directionMismatchPolicy === yield-no-value: Yield nothing
-
-> 14. return undefined
-
-### Yield Numbers! (Not written in spec language yet)
-
-> 16. Run the code below.
-
-```js
-let count = one
-let now = from
-while (ifIncrease ? !(now >= to) : !(to >= now)) {
-    yield now
-    now = from + step * count
-    count++
-}
-```
-
-### Over
-
-> 17. return undefined
-
 # Polyfill
 
 Here is a [polyfill](https://github.com/Jack-Works/proposal-Number.range/blob/master/polyfill.js).
+
+### Spec
+
+#### Variants: there are still some behavior not decided yet and waiting for discussion. Leave as variable in the spec.
+
+-   isAcceptAlias: `range(to)` treated as `range(0, to)`
+-   directionMismatch: What to do if the direction mismatch
+
+#### CreateRangeIterator(`from`, `to`, `step`, `type`)
+
+1. If `Type(from)` is not `type`, throw a **TypeError** exception.
+1. **Assert**: `type` is `"number"` or `"bigint"`
+1. If `type` is `"bigint"`, let `zero` be `0n`, else let `zero` be `0`.
+1. If `type` is `"bigint"`, let `one` be `1n`, else let `one` be `1`.
+1. a. If variant `isAcceptAlias` is _false_, do nothing.
+
+    b. Else, if `Type(to)` is undefined, let `to` be `from`, then `from` be `zero`
+
+1. If `Type(step)` is `undefined`, let `step` = `one`
+    <!-- Type Check -->
+1. If `Type(from)` is not `type`, throw a `TypeError` exception.
+1. If `Type(to)` is not `type`, throw a `TypeError` exception.
+1. If `Type(step)` is not `type`, throw a `TypeError` exception.
+    <!-- Value range check -->
+1. If `from` is `Infinity`, throws a `RangeError` exception.
+1. If `step` is `Infinity`, throws a `RangeError` exception.
+1. If `step` is `zero`, throws an `RangeError` exception.
+
+1. Let `iterator` be `ObjectCreate(%RangeIteratorPrototype%, « [[from]], [[to]], [[step]], [[type]], [[currentCount]], [[lastValue]] »)`.
+1. Set `iterator`.[[from]] to from.
+1. Set `iterator`.[[to]] to to.
+1. Set `iterator`.[[step]] to step.
+1. Set `iterator`.[[type]] to type.
+1. Set `iterator`.[[currentCount]] to one.
+1. Set `iterator`.[[lastValue]] to from.
+1. Return `iterator`.
+
+#### The %RangeIteratorPrototype% Object
+
+The %RangeIteratorPrototype% object:
+
+has properties that are inherited by all Range Iterator Objects.
+
+is an ordinary object.
+
+has a [[Prototype]] internal slot whose value is the intrinsic object `%IteratorPrototype%`.
+
+has the following properties:
+
+##### %RangeIteratorPrototype%.next()
+
+<!-- brand checks -->
+
+1.  Let `iterator` be the **this** value.
+1.  If `Type(iterator)` is not Object, throw a **TypeError** exception.
+1.  If `iterator` does not have all of the internal slots of a Range Iterator Instance, throw a **TypeError** exception.
+    <!-- Deconstruct variables -->
+1.  Let `from` be `iterator`.[[from]].
+1.  Let `to` be `iterator`.[[to]].
+1.  Let `step` be `iterator`.[[step]].
+1.  Let `type` be `iterator`.[[type]].
+1.  **Assert**: `type` is `"number"` or `"bigint"`
+1.  If `type` is `"bigint"`, let `zero` be `0n`, else let `zero` be `0`
+1.  If `type` is `"bigint"`, let `one` be `1n`, else let `one` be `1`
+    <!-- Early return -->
+1.  If `from` is `NaN`, return `CreateIterResultObject(undeﬁned, true)`.
+1.  If `to` is `NaN`, return `CreateIterResultObject(undeﬁned, true)`.
+1.  If `step` is `NaN`, return `CreateIterResultObject(undeﬁned, true)`.
+    <!-- Direction mismatch -->
+1.  Let `ifIncrease` be `to > from`
+1.  Let `ifStepIncrease` = `step > zero`
+
+###### If variant `directionMismatch` is `throw`
+
+1. If `ifIncrease` is not equal to `ifStepIncrease`, throw a **RangeError** exception.
+
+##### If variant `directionMismatch` is `yield-no-value`
+
+1. If `ifIncrease` is not equal to `ifStepIncrease`, return `CreateIterResultObject(undeﬁned, true)`.
+
+##### If variant `directionMismatch` is `ignore`
+
+1. If `ifIncrease` is `true`, let `step` = `abs(step)`
+1. Else let `step` = `-abs(step)`
+
+##### If variant `directionMismatch` is `noop`
+
+1. Do nothing
+
+##### Variant block ended.
+
+<!-- Yield numbers -->
+
+```js
+let currentCount = one
+let lastValue = from
+if (ifIncrease) {
+    while (!(lastValue >= to)) {
+        let yielding = lastValue
+        lastValue = from + step * currentCount
+        currentCount++
+        yield yielding
+    }
+} else {
+    while (!(to >= lastValue)) {
+        let yielding = lastValue
+        lastValue = from + step * currentCount
+        currentCount++
+        yield yielding
+    }
+}
+```
+
+1. Let `currentCount` be `iterator`.[[currentCount]]
+1. Let `lastValue` be `iterator`.[[lastValue]]
+1. Let `now` be `from`
+1. If `ifIncrease` is true, let `condition` be `!(lastValue >= to)`, else let `condition` be `!(to >= lastValue)`
+1. Repeat, while `condition` evaluates to `true`,
+   a. Let `yielding` be `lastValue`
+   b. Set `lastValue` be `from` + (`step` \* `currentCount`)
+   c. Set `currentCount` to `currentCount` + `one`
+   d. Set `iterator`.[[currentCount]] to currentCount
+   e. Return `CreateIterResultObject(yielding, false).`
+      <!-- Finish -->
+1. return `CreateIterResultObject(undeﬁned, true)`.
+
+#### %MapIteratorPrototype%[@@toStringTag]
+
+The initial value of the @@toStringTag property is the String value "Range Iterator".
+
+This property has the attributes { [[Writable]]: false, [[Enumerable]]: false, [[Conﬁgurable]]: true }.
+
+### Properties of Range Iterator Instances
+
+Range Iterator instances are ordinary objects that inherit properties from the `%MapIteratorPrototype%` intrinsic object.
+
+Range Iterator instances are initially created with the internal slots described in Table.
+
+<table>
+<thead>
+<tr>
+<td>Internal slot</td>
+<td>Description</td>
+<tr>
+</thead>
+<tbody>
+<tr><td>[[from]]</td><td>The range starts from.</td><tr>
+<tr><td>[[to]]</td><td>The range ends to.</td><tr>
+<tr><td>[[step]]</td><td>The range step size.</td><tr>
+<tr><td>[[type]]</td><td>Must be "number" or "bigint".</td><tr>
+<tr>
+<td>[[currentCount]]</td>
+<td>The `integer index` of the last yielded value this iterator. Must be type of number or bigint.</td>
+<tr>
+<tr><td>[[lastValue]]</td><td>The last iterated value. Must be type of number or bigint.</td><tr>
+</tbody>
+</table>
+
+1. Let `iterator` be `ObjectCreate(%RangeIteratorPrototype%, « [[from]], [[to]], [[step]], [[type]], [[currentCount]], [[lastValue]] »)`.
+
+### Number.range(from, to, step)
+
+1. Return ? `CreateRangeIterator(from, to, step, "number")`.
+
+### BigInt.range(from, to, step)
+
+1. Return ? `CreateRangeIterator(from, to, step, "bigint")`.
