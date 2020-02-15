@@ -65,10 +65,10 @@ If you interested in these topics, please open an issue!
 # Examples
 
 ```js
-for (const i of Number.range(0, 43)) console.log(i) // 0 to 42
+for (const i of BigInt.range(0n, 43n)) console.log(i) // 0n to 42n
 
 // With iterator helper proposal
-const prime1000 = BigInt.range(0n, Infinity).filter(isPrime).take(1000).toArray()
+Number.range(0, Infinity).take(1000).filter(x => !(x % 3)).toArray()
 
 function* even() { 
     for (const i of Number.range(0, Infinity)) if (i % 2 === 0) yield i
