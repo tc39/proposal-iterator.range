@@ -67,13 +67,13 @@ If you interested in these topics, please open an issue!
 ```js
 for (const i of Number.range(0, 43)) console.log(i) // 0 to 42
 
-const mockData = [...Number.range(0, 21)].map(x => ({ age: x, name }))
+// With iterator helper proposal
+const prime1000 = BigInt.range(0n, Infinity).filter(isPrime).take(1000).toArray()
 
-function* odd() {
-    for (const i of Number.range(0, Infinity)) {
-        if (i % 2 === 0) yield i
-    }
+function* even() { 
+    for (const i of Number.range(0, Infinity)) if (i % 2 === 0) yield i
 }
+[...Number.range(1, 100, 2)] // odd number from 1 to 99
 ```
 
 # Proposal
