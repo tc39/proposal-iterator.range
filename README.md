@@ -8,6 +8,10 @@
 
 This proposal describes adding a `Number.range` and a `BigInt.range` to JavaScript.
 
+See the rendered spec at [here](https://jack-works.github.io/proposal-Number.range/).
+
+Here is a [polyfill](https://github.com/Jack-Works/proposal-Number.range/blob/master/polyfill.js).
+
 ## Motivation
 
 -   because we don't have it yet™
@@ -110,9 +114,3 @@ interface BigIntConstructor {
     range(to: BigInt): Iterator<BigInt>
 }
 ```
-
-# Polyfill
-
-Here is a [polyfill](https://github.com/Jack-Works/proposal-Number.range/blob/master/polyfill.js).
-
-### Spec
