@@ -140,6 +140,39 @@ while (eval(condition)) {
         <p>The initial value of the @@toStringTag property is the String value `"RangeIterator"`.</p>
         <p>This property has the attributes { [[Writable]]: *false*, [[Enumerable]]: *false*, [[Configurable]]: *true* }.</p>
     </emu-clause>
+    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-from">
+        <h1>%RangeIteratorPrototype%.from</h1>
+        <p>%RangeIteratorPrototype%.from is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: true }. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-from-getter">
+            <h1>get %RangeIteratorPrototype%.from</h1>
+            <emu-alg>
+                1. If *this* does not have a [[from]] internal slot, throw a *TypeError* exception.
+                1. return *this*.[[from]]
+            </emu-alg>
+        </emu-clause>
+    </emu-clause>
+    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to">
+        <h1>%RangeIteratorPrototype%.to</h1>
+        <p>%RangeIteratorPrototype%.to is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: true }. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to-getter">
+            <h1>get %RangeIteratorPrototype%.to</h1>
+            <emu-alg>
+                1. If *this* does not have a [[to]] internal slot, throw a *TypeError* exception.
+                1. return *this*.[[to]]
+            </emu-alg>
+        </emu-clause>
+    </emu-clause>
+    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-step">
+        <h1>%RangeIteratorPrototype%.step</h1>
+        <p>%RangeIteratorPrototype%.step is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: true }. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-step-getter">
+            <h1>get %RangeIteratorPrototype%.step</h1>
+            <emu-alg>
+                1. If *this* does not have a [[step]] internal slot, throw a *TypeError* exception.
+                1. return *this*.[[step]]
+            </emu-alg>
+        </emu-clause>
+    </emu-clause>
     <emu-clause id="sec-rangeiterator-slots">
         <h1>Internal slots</h1>
         <emu-table id="sec-rangeiterator-internal-slots" caption="Internal slots">
