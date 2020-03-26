@@ -56,6 +56,8 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 -   -   Direction mismatch `Number.range(0, 10, -5)` (See: [#5](https://github.com/Jack-Works/proposal-Number.range/issues/5), and [here](#feature-assumptions-of-content-below-wait-for-discussing))
 -   Should we throw on `Number.range(42, 100, 1e-323)`? (See: [#7](https://github.com/Jack-Works/proposal-Number.range/issues/7))
 -   Should we support `BigInt.range(0n, Infinity)`? (See: [#8](https://github.com/Jack-Works/proposal-Number.range/issues/8))
+-   Add helpers methods on the return value ([#12](https://github.com/Jack-Works/proposal-Number.range/issues/12))
+-   What should `range(n)` (with no second parameter) means ([#18](https://github.com/Jack-Works/proposal-Number.range/issues/18) or [#14](https://github.com/Jack-Works/proposal-Number.range/issues/14))
 
 #### Others
 
@@ -63,7 +65,6 @@ If you interested in these topics, please open an issue!
 
 -   Customizable behavior? Like `Number.range(0, 1000, (previous, index) => next)`
 -   Add a new syntax like `2...3` instead of a `Number.range()`?
--   Support `Number.range(x)` as an alias of `Number.range(0, x)`?
 -   Drop support for decimal step to avoid the 0.30000000000000004 problem?
 
 # Examples
