@@ -58,13 +58,13 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 -   Should we support `BigInt.range(0n, Infinity)`? (See: [#8](https://github.com/Jack-Works/proposal-Number.range/issues/8))
 -   Add helpers methods on the return value ([#12](https://github.com/Jack-Works/proposal-Number.range/issues/12))
 -   What should `range(n)` (with no second parameter) means ([#18](https://github.com/Jack-Works/proposal-Number.range/issues/18) or [#14](https://github.com/Jack-Works/proposal-Number.range/issues/14))
+-   Add a new syntax like `2...3` instead of a `Number.range()`? ((#20)[https://github.com/Jack-Works/proposal-Number.range/issues/20])
 
 #### Others
 
 If you interested in these topics, please open an issue!
 
 -   Customizable behavior? Like `Number.range(0, 1000, (previous, index) => next)`
--   Add a new syntax like `2...3` instead of a `Number.range()`?
 -   Drop support for decimal step to avoid the 0.30000000000000004 problem?
 
 # Examples
