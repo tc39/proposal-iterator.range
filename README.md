@@ -10,7 +10,7 @@ This proposal describes adding a `Number.range` and a `BigInt.range` to JavaScri
 
 See the rendered spec at [here](https://tc39.es/proposal-Number.range/).
 
-Here is a experimental [implementation](https://github.com/tc39/proposal-Number.range/blob/master/polyfill.js).
+[Playground](https://tc39.es/proposal-Number.range/playground.html).
 
 ## Motivation
 

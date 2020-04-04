@@ -1,0 +1,35 @@
+Open your console and "Number.range" & BigInt.range is available.
+<script src="./polyfill.js"></script>
+<script>
+    globalThis.a = Number.range(0, 10, 1)
+    console.log('globalThis.a', a)
+
+    function display(f) {
+        const stringify = f
+            .toString()
+            .replace(/^\(\) =>/, '')
+            .replace(/^\s+/gm, '')
+            .split('\n')
+            .map((x, i) => (i > 0 ? '    ' + x : x))
+            .join('\n')
+        console.log(stringify, stringify.includes('\n') ? '\n' : '', f())
+    }
+    display(() => [...Number.range(-2, 8)])
+    display(() => [...BigInt.range(-2n, 8n)])
+    display(() => [...Number.range(2, -2, -1)])
+</script>
+<script>
+    import('https://core-js.jackworks.workers.dev/proposals/iterator-helpers.js').then(() => {
+        const tip = 'Polyfill for iterator helper proposal is also loaded!'
+        const x = document.createElement('div')
+        document.body.appendChild(x)
+        x.innerText = tip
+        console.log(tip)
+        display(() =>
+            Number.range(0, 10)
+                .take(3)
+                .map((x) => x ** x)
+                .toArray()
+        )
+    })
+</script>
