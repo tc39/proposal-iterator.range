@@ -4,13 +4,13 @@
 
 **Author**: Jack Works
 
-**Stage**: 0
+**Stage**: 1
 
 This proposal describes adding a `Number.range` and a `BigInt.range` to JavaScript.
 
-See the rendered spec at [here](https://jack-works.github.io/proposal-Number.range/).
+See the rendered spec at [here](https://tc39.es/proposal-Number.range/).
 
-Here is a [polyfill](https://github.com/Jack-Works/proposal-Number.range/blob/master/polyfill.js).
+Here is a experimental [implementation](https://github.com/tc39/proposal-Number.range/blob/master/polyfill.js).
 
 ## Motivation
 
@@ -53,12 +53,12 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 #### Discussions in Issue
 
 -   How to deal with bad inputs?
--   -   Direction mismatch `Number.range(0, 10, -5)` (See: [#5](https://github.com/Jack-Works/proposal-Number.range/issues/5), and [here](#feature-assumptions-of-content-below-wait-for-discussing))
--   Should we throw on `Number.range(42, 100, 1e-323)`? (See: [#7](https://github.com/Jack-Works/proposal-Number.range/issues/7))
--   Should we support `BigInt.range(0n, Infinity)`? (See: [#8](https://github.com/Jack-Works/proposal-Number.range/issues/8))
--   Add helpers methods on the return value ([#12](https://github.com/Jack-Works/proposal-Number.range/issues/12))
--   What should `range(n)` (with no second parameter) means ([#18](https://github.com/Jack-Works/proposal-Number.range/issues/18) or [#14](https://github.com/Jack-Works/proposal-Number.range/issues/14))
--   Add a new syntax like `2...3` instead of a `Number.range()`? ([#20](https://github.com/Jack-Works/proposal-Number.range/issues/20))
+-   -   Direction mismatch `Number.range(0, 10, -5)` (See: [#5](https://github.com/tc39/proposal-Number.range/issues/5), and [here](#feature-assumptions-of-content-below-wait-for-discussing))
+-   Should we throw on `Number.range(42, 100, 1e-323)`? (See: [#7](https://github.com/tc39/proposal-Number.range/issues/7))
+-   Should we support `BigInt.range(0n, Infinity)`? (See: [#8](https://github.com/tc39/proposal-Number.range/issues/8))
+-   Add helpers methods on the return value ([#12](https://github.com/tc39/proposal-Number.range/issues/12))
+-   What should `range(n)` (with no second parameter) means ([#18](https://github.com/tc39/proposal-Number.range/issues/18) or [#14](https://github.com/tc39/proposal-Number.range/issues/14))
+-   Add a new syntax like `2...3` instead of a `Number.range()`? ([#20](https://github.com/tc39/proposal-Number.range/issues/20))
 
 #### Others
 
@@ -75,7 +75,7 @@ for (const i of BigInt.range(0n, 43n)) console.log(i) // 0n to 42n
 // With iterator helper proposal
 Number.range(0, Infinity)
     .take(1000)
-    .filter(x => !(x % 3))
+    .filter((x) => !(x % 3))
     .toArray()
 
 function* even() {

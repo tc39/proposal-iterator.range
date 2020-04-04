@@ -5,7 +5,7 @@
 <script src="./spec.js"></script>
 <pre class="metadata">
 title: Proposal Number.range & BigInt.range
-stage: 0
+stage: 1
 contributors: "Jack Works"
 </pre>
 
