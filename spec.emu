@@ -95,16 +95,7 @@ contributors: "Jack Works"
             <!-- Direction mismatch -->
             1.  Let _ifIncrease_ be `to > from`
             1.  Let _ifStepIncrease_ to be `step > zero`
-            1.  Variants
-                1. If variant _directionMismatch_ is *"throw"*
-                    1. If _ifIncrease_ is not equal to _ifStepIncrease_, throw a *RangeError* exception.
-                1. If variant _directionMismatch_ is *"yield-no-value"*
-                    1. If _ifIncrease_ is not equal to _ifStepIncrease_, return CreateIterResultObject(*undeﬁned*, *true*).
-                1. If variant _directionMismatch_ is *"ignore"*
-                    1. If _ifIncrease_ is *true*, let _step_ to be `abs(step)`
-                    1. Else let _step_ to be `-abs(step)`
-                1. If variant _directionMismatch_ is *"noop"*
-                    1. Do nothing
+            1. If _ifIncrease_ is not equal to _ifStepIncrease_, return CreateIterResultObject(*undeﬁned*, *true*).
             <!-- Yield numbers -->
             1. Note:
         <emu-note type="editor">

@@ -14,17 +14,6 @@
      * This flag treat `range(to)` as `range(0, to)`
      */
     const isAcceptAlias = false
-    /**
-     * @type{"throw" | "ignore" | "noop" | "yield-no-value"}
-     * This flag will affect how function treat direction mismatch
-     * Like: Number.range(0, 999, -1)
-     *
-     * throw: Throws an exception
-     * ignore: Ignore the symbol of step, infer from from and to
-     * noop: Respect direction mismatch (and cause a dead loop)
-     * yield-no-value: return undefined, yield nothing
-     */
-    const directionMismatch = 'ignore'
     const IteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
     class RangeIterator {
         /**
@@ -100,18 +89,7 @@
             if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step)) return { done: true, value: undefined }
             const ifIncrease = to > from
             const ifStepIncrease = step > zero
-            if (directionMismatch === 'throw') {
-                if (ifIncrease !== ifStepIncrease) throw new RangeError()
-            } else if (directionMismatch === 'yield-no-value') {
-                if (ifIncrease !== ifStepIncrease) return { done: true, value: undefined }
-            } else if (directionMismatch === 'ignore') {
-                if (ifIncrease === true) step = abs(step)
-                else step = -abs(step)
-            } else if (directionMismatch === 'noop') {
-                // 16.d.i: Do nothing
-            } else {
-                throw new TypeError('Invalid directionMismatch')
-            }
+            if (ifIncrease !== ifStepIncrease) return { done: true, value: undefined }
             // Step 18
             /*
 let currentCount = one

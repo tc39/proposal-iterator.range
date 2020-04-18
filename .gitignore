@@ -36,6 +36,9 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 
+# editor
+.vscode
+
 # Only apps should have lockfiles
 yarn.lock
 package-lock.json
