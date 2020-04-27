@@ -53,9 +53,7 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 #### Discussions in Issue
 
 -   How to deal with bad inputs?
--   -   Direction mismatch `Number.range(0, 10, -5)` (See: [#5](https://github.com/tc39/proposal-Number.range/issues/5), and [here](#feature-assumptions-of-content-below-wait-for-discussing))
 -   Should we throw on `Number.range(42, 100, 1e-323)`? (See: [#7](https://github.com/tc39/proposal-Number.range/issues/7))
--   Should we support `BigInt.range(0n, Infinity)`? (See: [#8](https://github.com/tc39/proposal-Number.range/issues/8))
 -   Add helpers methods on the return value ([#12](https://github.com/tc39/proposal-Number.range/issues/12))
 -   What should `range(n)` (with no second parameter) means ([#18](https://github.com/tc39/proposal-Number.range/issues/18) or [#14](https://github.com/tc39/proposal-Number.range/issues/14))
 -   Add a new syntax like `2...3` instead of a `Number.range()`? ([#20](https://github.com/tc39/proposal-Number.range/issues/20))
@@ -95,11 +93,6 @@ BigInt.range( `from` , `to`, `step` )
 -   `Number.range(to)` equals `Number.range(0, to)` (`isAcceptAlias` in polyfill)
 -   -   \[false](default) No
 -   -   \[true] Yes
--   Handle with direction mismatch (`directionMismatch` in polyfill)
--   -   \[throw] throws an Error
--   -   \[ignore](default) Ignore the symbol of `step`, infer from `from` and `to`
--   -   \[noop] Respect direction mismatch (and cause a dead loop)
--   -   \[yield-no-value] yield nothing (See: #5)
 
 ### Signature
 
