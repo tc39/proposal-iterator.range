@@ -3,7 +3,7 @@
 // This polyfill requires: globalThis, BigInt & private fields
 ;(() => {
     // Math.abs does not support BigInt.
-    const abs = (x) => (x >= (typeof x === 'bigint' ? 0n : 0) ? x : -x)
+    const abs = (x) => (x >= (typeof x === "bigint" ? 0n : 0) ? x : -x)
     /*
      * Behaviour flags
      * This proposal is in early stage.
@@ -14,38 +14,47 @@
      * This flag treat `range(to)` as `range(0, to)`
      */
     const isAcceptAlias = false
-    const IteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
+    const IteratorPrototype = Object.getPrototypeOf(
+        Object.getPrototypeOf([][Symbol.iterator]())
+    )
     class RangeIterator {
         /**
          *
          * @param {number | bigint} from
          * @param {number | bigint | undefined} to
-         * @param {number | bigint | undefined} step
+         * @param {number | bigint | undefined} option
          * @param {"number" | "bigint"} type
          */
-        constructor(from, to, step, type) {
+        constructor(from, to, option, type) {
             // Step 1 to 7
             if (typeof from !== type) throw new TypeError()
-            if (type !== 'number' && type !== 'bigint') throw new TypeError('Assert failed')
-            const zero = type === 'bigint' ? 0n : 0
-            const one = type === 'bigint' ? 1n : 1
+            if (type !== "number" && type !== "bigint")
+                throw new TypeError("Assert failed")
+            const zero = type === "bigint" ? 0n : 0
+            const one = type === "bigint" ? 1n : 1
             if (isAcceptAlias === false) {
-            } else if (typeof to === 'undefined') {
+            } else if (typeof to === "undefined") {
                 // range(to) equals to range(zero, to)
                 to = from
                 from = zero
             }
-            if (typeof step === 'undefined') step = one
+            let step
+            if (typeof option === "undefined" || option === null) step = one
+            else if (typeof option === "object")
+                step = Reflect.get(option, "step")
+            else if (typeof option === type) step = option
+            else throw new TypeError()
+            if (typeof step === "undefined") step = one
             if (typeof from !== type) throw new TypeError()
             // Step 9 to 13
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
-            if (typeof to === 'number' && Number.isFinite(to)) if (typeof to !== type) throw new TypeError()
-            if (typeof step !== type) throw new TypeError()
+            if (typeof to === "number" && Number.isFinite(to))
+                if (typeof to !== type) throw new TypeError()
             // JavaScript is awesome, this code won't work
             // if (!Number.isFinite(from) || !Number.isFinite(step)) throw RangeError()
             if (
-                (typeof from === 'number' && !Number.isFinite(from)) ||
-                (typeof step === 'number' && !Number.isFinite(step))
+                (typeof from === "number" && !Number.isFinite(from)) ||
+                (typeof step === "number" && !Number.isFinite(step))
             )
                 throw RangeError()
             if (step === zero) throw new RangeError()
@@ -83,13 +92,16 @@
             const to = this.#to
             let step = this.#step
             const type = this.#type
-            if (type !== 'bigint' && type !== 'number') throw new TypeError('Assertion failed')
-            const zero = type === 'bigint' ? 0n : 0
-            const one = type === 'bigint' ? 1n : 1
-            if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step)) return { done: true, value: undefined }
+            if (type !== "bigint" && type !== "number")
+                throw new TypeError("Assertion failed")
+            const zero = type === "bigint" ? 0n : 0
+            const one = type === "bigint" ? 1n : 1
+            if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step))
+                return { done: true, value: undefined }
             const ifIncrease = to > from
             const ifStepIncrease = step > zero
-            if (ifIncrease !== ifStepIncrease) return { done: true, value: undefined }
+            if (ifIncrease !== ifStepIncrease)
+                return { done: true, value: undefined }
             // Step 18
             /*
 let currentCount = one
@@ -104,7 +116,9 @@ while (eval(condition)) {
              */
             let currentCount = this.#currentCount
             let lastValue = this.#lastValue
-            const condition = ifIncrease ? () => !(lastValue >= to) : () => !(to >= lastValue)
+            const condition = ifIncrease
+                ? () => !(lastValue >= to)
+                : () => !(to >= lastValue)
             while (condition()) {
                 lastValue = from + step * currentCount
                 currentCount = currentCount + one
@@ -128,20 +142,22 @@ while (eval(condition)) {
         writable: false,
         enumerable: false,
         configurable: true,
-        value: 'RangeIterator',
+        value: "RangeIterator",
     })
-    if (typeof Number.range !== 'function') {
-        Object.defineProperty(Number, 'range', {
+    if (typeof Number.range !== "function") {
+        Object.defineProperty(Number, "range", {
             configurable: true,
-            value: (from, to, step) => new RangeIterator(from, to, step, 'number'),
+            value: (from, to, option) =>
+                new RangeIterator(from, to, option, "number"),
             writable: true,
         })
     }
     // If BigInt does not exist in globalThis, this will apply to FakeBigIntConstructor and then ignored.
-    if (typeof BigInt.range !== 'function') {
-        Object.defineProperty(BigInt, 'range', {
+    if (typeof BigInt.range !== "function") {
+        Object.defineProperty(BigInt, "range", {
             configurable: true,
-            value: (from, to, step) => new RangeIterator(from, to, step, 'bigint'),
+            value: (from, to, option) =>
+                new RangeIterator(from, to, option, "bigint"),
             writable: true,
         })
     }

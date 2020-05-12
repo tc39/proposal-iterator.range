@@ -22,25 +22,25 @@ contributors: "Jack Works"
 <emu-clause id="sec-number">
     <h1>Number</h1>
     <emu-clause id="sec-number-range">
-        <h1>Number.range(_from_, _to_, _step_)</h1>
+        <h1>Number.range(_from_, _to_, _option_)</h1>
         <emu-alg>
-            1. Return ? CreateRangeIterator(_from_, _to_, _step_, *"number"*).
+            1. Return ? CreateRangeIterator(_from_, _to_, _option_, *"number"*).
         </emu-alg>
     </emu-clause>
 </emu-clause>
 <emu-clause id="sec-bigint">
     <h1>BigInt</h1>
     <emu-clause id="sec-bigint-range">
-        <h1>BigInt.range(_from_, _to_, _step_)</h1>
+        <h1>BigInt.range(_from_, _to_, _option_)</h1>
         <emu-alg>
-            1. Return ? CreateRangeIterator(_from_, _to_, _step_, *"bigint"*).
+            1. Return ? CreateRangeIterator(_from_, _to_, _option_, *"bigint"*).
         </emu-alg>
     </emu-clause>
 </emu-clause>
 <emu-clause id="sec-algor">
     <h1>Algorithms</h1>
     <emu-clause id="sec-algor">
-        <h1><dfn>CreateRangeIterator</dfn>(_from_, _to_, _step_, _type_)</h1>
+        <h1><dfn>CreateRangeIterator</dfn>(_from_, _to_, _option_, _type_)</h1>
         <emu-alg>
             1. If Type(_from_) is not _type_, throw a *TypeError* exception.
             1. Assert: _type_ is *"number"* or
@@ -50,11 +50,12 @@ contributors: "Jack Works"
             1. Variants
                 1. If variant _isAcceptAlias_ is *false*, do nothing.
                 1. Else, if Type(_to_) is *"undefined"*, let _to_ be _from_, then _from_ be _zero_
-            1. If Type(_step_) is *undefined*, let _step_ = _one_
-            1. If Type(_from_) is not _type_, throw a *TypeError* exception.
+            1. If _option_ is *undefined* or *null*, let _step_ = _one_.
+                1. Else Type(_option_) is *object*, let _step_ = Get(_option_, "step").
+                1. Else if Type(_option_) is _type_, let _step_ = _option_.
+                1. Else, throw a *TypeError* exception.
             1. Note: <emu-note type="editor">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</emu-note>
             1. If _to_ is not *+∞* or *-∞* and if Type(_to_) is not _type_, throw a *TypeError* exception.
-            1. If Type(_step_) is not _type_, throw a *TypeError* exception.
             1. If _from_ is *+∞* or *-∞*, throws a *RangeError* exception.
             1. If _step_ is *+∞* or *-∞*, throws a *RangeError* exception.
             1. If _step_ is _zero_, throws an *RangeError* exception.

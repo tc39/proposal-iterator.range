@@ -1,10 +1,16 @@
-interface NumberConstructor {
-    range(from: number, to: number, step?: number): Iterator<number>
-    // If accept Number.range(to)
-    range(to: number): Iterator<number>
+type Infinity = number
+interface RangeIterator<T extends number | bigint>
+    extends Iterator<T, void, void> {
+    // This property is not in the spec yet.
+    [Symbol.iterator](): RangeIterator<T>
+    readonly [Symbol.toStringTag]: "RangeIterator"
+    readonly from: T
+    readonly to: T | Infinity
+    readonly step: T
 }
-interface BigIntConstructor {
-    range(from: bigint, to: bigint, step?: bigint): Iterator<bigint>
-    // If accept BigInt.range(to)
-    range(to: bigint): Iterator<bigint>
+type RangeFunction<T extends number | bigint> = {
+    range(from: T, to: T | Infinity, option?: { step?: T }): RangeIterator<T>
+    range(from: T, to: T | Infinity, step?: T): RangeIterator<T>
 }
+interface NumberConstructor extends RangeFunction<number> {}
+interface BigIntConstructor extends RangeFunction<bigint> {}
