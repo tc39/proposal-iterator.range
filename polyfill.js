@@ -65,7 +65,7 @@
             this.#to = to
             this.#step = step
             this.#type = type
-            this.#currentCount = one
+            this.#currentCount = zero
             this.#lastValue = from
             return this
         }
@@ -94,6 +94,7 @@
             const type = this.#type
             if (type !== "bigint" && type !== "number")
                 throw new TypeError("Assertion failed")
+            if (from === to) return { done: true, value: undefined }
             const zero = type === "bigint" ? 0n : 0
             const one = type === "bigint" ? 1n : 1
             if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step))
@@ -120,8 +121,8 @@ while (eval(condition)) {
                 lastValue = from + step * currentCount
                 currentCount = currentCount + one
                 if (ifIncrease) {
-                    if (lastValue > to) break calc
-                } else if (to > lastValue) break calc
+                    if (lastValue >= to) break calc
+                } else if (to >= lastValue) break calc
                 this.#currentCount = currentCount
                 this.#lastValue = lastValue
                 return { done: false, value: lastValue }
