@@ -104,11 +104,12 @@ Basically, the algorithm in JS:
 <br />
 `let currentCount = one
 let lastValue = from
-let condition = ifIncrease ? "!(lastValue >= to)" : "!(to >= lastValue)"
-while (eval(condition)) {
+while (ifIncrease ? !(lastValue >= to) : !(to >= lastValue)) {
     let yielding = lastValue
     lastValue = from + step * currentCount
     currentCount++
+    if (ifIncrease) { if (yielding > to) return }
+    else if (to > yielding) return
     yield yielding
 }`
         </emu-note>
@@ -118,6 +119,9 @@ while (eval(condition)) {
             1.  Repeat, while _condition_ evaluates to *true*,
                 1. Set _lastValue_ be _from_ + (_step_ \* _currentCount_)
                 1. Set _currentCount_ to _currentCount_ + _one_
+                <!-- Prevent value overflow -->
+                1. If _ifIncrease_ is *true* and _lastValue_ > _to_, return CreateIterResultObject(*undeﬁned*, *true*).
+                1. If _ifIncrease_ is *false*and _to_ > _lastValue_, return CreateIterResultObject(*undeﬁned*, *true*).
                 1. Set _iterator_.[[currentCount]] to currentCount
                 1. Set _iterator_.[[lastValue]] to lastValue
                 1. Return CreateIterResultObject(_lastValue_, *false*).
@@ -132,7 +136,7 @@ while (eval(condition)) {
     </emu-clause>
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-from">
         <h1>%RangeIteratorPrototype%.from</h1>
-        <p>%RangeIteratorPrototype%.from is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: true }. The [[Get]] attribute is defined as follows: </p>
+        <p>%RangeIteratorPrototype%.from is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
         <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-from-getter">
             <h1>get %RangeIteratorPrototype%.from</h1>
             <emu-alg>
@@ -143,7 +147,7 @@ while (eval(condition)) {
     </emu-clause>
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to">
         <h1>%RangeIteratorPrototype%.to</h1>
-        <p>%RangeIteratorPrototype%.to is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: true }. The [[Get]] attribute is defined as follows: </p>
+        <p>%RangeIteratorPrototype%.to is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
         <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to-getter">
             <h1>get %RangeIteratorPrototype%.to</h1>
             <emu-alg>
@@ -154,7 +158,7 @@ while (eval(condition)) {
     </emu-clause>
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-step">
         <h1>%RangeIteratorPrototype%.step</h1>
-        <p>%RangeIteratorPrototype%.step is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: true }. The [[Get]] attribute is defined as follows: </p>
+        <p>%RangeIteratorPrototype%.step is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
         <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-step-getter">
             <h1>get %RangeIteratorPrototype%.step</h1>
             <emu-alg>
