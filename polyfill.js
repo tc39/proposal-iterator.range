@@ -22,7 +22,7 @@
          *
          * @param {number | bigint} from
          * @param {number | bigint | undefined} to
-         * @param {number | bigint | undefined} option
+         * @param {number | bigint | undefined | null | object} option
          * @param {"number" | "bigint"} type
          */
         constructor(from, to, option, type) {
@@ -116,12 +116,12 @@ while (eval(condition)) {
              */
             let currentCount = this.#currentCount
             let lastValue = this.#lastValue
-            const condition = ifIncrease
-                ? () => !(lastValue >= to)
-                : () => !(to >= lastValue)
-            while (condition()) {
+            calc: if (ifIncrease ? !(lastValue >= to) : !(to >= lastValue)) {
                 lastValue = from + step * currentCount
                 currentCount = currentCount + one
+                if (ifIncrease) {
+                    if (lastValue > to) break calc
+                } else if (to > lastValue) break calc
                 this.#currentCount = currentCount
                 this.#lastValue = lastValue
                 return { done: false, value: lastValue }
