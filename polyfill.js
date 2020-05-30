@@ -2,8 +2,6 @@
 // syntax target = es2020
 // This polyfill requires: globalThis, BigInt & private fields
 ;(() => {
-    // Math.abs does not support BigInt.
-    const abs = (x) => (x >= (typeof x === "bigint" ? 0n : 0) ? x : -x)
     /*
      * Behaviour flags
      * This proposal is in early stage.
@@ -14,9 +12,6 @@
      * This flag treat `range(to)` as `range(0, to)`
      */
     const isAcceptAlias = false
-    const IteratorPrototype = Object.getPrototypeOf(
-        Object.getPrototypeOf([][Symbol.iterator]())
-    )
     class RangeIterator {
         /**
          *
@@ -26,10 +21,9 @@
          * @param {"number" | "bigint"} type
          */
         constructor(from, to, option, type) {
-            // Step 1 to 7
+            // Step 1 to 6
             if (typeof from !== type) throw new TypeError()
-            if (type !== "number" && type !== "bigint")
-                throw new TypeError("Assert failed")
+            if (type !== "number" && type !== "bigint") throw new TypeError()
             const zero = type === "bigint" ? 0n : 0
             const one = type === "bigint" ? 1n : 1
             if (isAcceptAlias === false) {
@@ -38,35 +32,25 @@
                 to = from
                 from = zero
             }
+            /** @type {number | bigint} */
             let step
             if (typeof option === "undefined" || option === null) step = one
-            else if (typeof option === "object")
-                step = Reflect.get(option, "step")
+            else if (typeof option === "object") step = option.step
             else if (typeof option === type) step = option
             else throw new TypeError()
             if (typeof step === "undefined") step = one
             if (typeof from !== type) throw new TypeError()
-            // Step 9 to 13
+            // Step 7 to 11
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
-            if (typeof to === "number" && Number.isFinite(to))
-                if (typeof to !== type) throw new TypeError()
-            // JavaScript is awesome, this code won't work
-            // if (!Number.isFinite(from) || !Number.isFinite(step)) throw RangeError()
-            if (
-                (typeof from === "number" && !Number.isFinite(from)) ||
-                (typeof step === "number" && !Number.isFinite(step))
-            )
-                throw RangeError()
+            if (!isInfinity(to) && typeof to !== type) throw new TypeError()
+            if (isInfinity(from) || isInfinity(step)) throw RangeError()
             if (step === zero) throw new RangeError()
-            // Step 14
-            Object.setPrototypeOf(RangeIterator.prototype, IteratorPrototype)
-            // Step 15 - 21
+            // Step 13 - 18
             this.#from = from
             this.#to = to
             this.#step = step
             this.#type = type
             this.#currentCount = zero
-            this.#lastValue = from
             return this
         }
         //#region internal slots
@@ -80,8 +64,6 @@
         #type
         /** @type {number | bigint} */
         #currentCount
-        /** @type {number | bigint} */
-        #lastValue
         //#endregion
         /**
          * @returns {IteratorResult<number | bigint>}
@@ -90,44 +72,28 @@
             // Step 1 to 3 omitted. Private field will do the brand check
             const from = this.#from
             const to = this.#to
-            let step = this.#step
+            const step = this.#step
             const type = this.#type
-            if (type !== "bigint" && type !== "number")
-                throw new TypeError("Assertion failed")
-            if (from === to) return { done: true, value: undefined }
+            if (type !== "bigint" && type !== "number") throw new TypeError()
+            if (from === to) return CreateIterResultObject(undefined, true)
             const zero = type === "bigint" ? 0n : 0
             const one = type === "bigint" ? 1n : 1
             if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step))
-                return { done: true, value: undefined }
+                return CreateIterResultObject(undefined, true)
             const ifIncrease = to > from
             const ifStepIncrease = step > zero
             if (ifIncrease !== ifStepIncrease)
-                return { done: true, value: undefined }
-            // Step 18
-            /*
-let currentCount = one
-let lastValue = from
-let condition = ifIncrease ? "!(lastValue >= to)" : "!(to >= lastValue)"
-while (eval(condition)) {
-    let yielding = lastValue
-    lastValue = from + step * currentCount
-    currentCount++
-    yield yielding
-}
-             */
-            let currentCount = this.#currentCount
-            let lastValue = this.#lastValue
-            calc: if (ifIncrease ? !(lastValue >= to) : !(to >= lastValue)) {
-                lastValue = from + step * currentCount
-                currentCount = currentCount + one
-                if (ifIncrease) {
-                    if (lastValue >= to) break calc
-                } else if (to >= lastValue) break calc
-                this.#currentCount = currentCount
-                this.#lastValue = lastValue
-                return { done: false, value: lastValue }
-            }
-            return { done: true, undefined }
+                return CreateIterResultObject(undefined, true)
+            // Step 19
+            const currentCount = this.#currentCount
+            const currentYieldingValue = from + step * currentCount
+            const nextCount = currentCount + one
+            if (ifIncrease && currentYieldingValue >= to)
+                return CreateIterResultObject(undefined, true)
+            if (!ifIncrease && to >= currentYieldingValue)
+                return CreateIterResultObject(undefined, true)
+            this.#currentCount = nextCount
+            return CreateIterResultObject(currentYieldingValue, false)
         }
         get from() {
             return this.#from
@@ -139,27 +105,35 @@ while (eval(condition)) {
             return this.#step
         }
     }
+    const IteratorPrototype = Object.getPrototypeOf(
+        Object.getPrototypeOf([][Symbol.iterator]())
+    )
+    Object.setPrototypeOf(RangeIterator.prototype, IteratorPrototype)
     Object.defineProperty(RangeIterator.prototype, Symbol.toStringTag, {
         writable: false,
         enumerable: false,
         configurable: true,
         value: "RangeIterator",
     })
-    if (typeof Number.range !== "function") {
-        Object.defineProperty(Number, "range", {
-            configurable: true,
-            value: (from, to, option) =>
-                new RangeIterator(from, to, option, "number"),
-            writable: true,
-        })
+    Object.defineProperty(Number, "range", {
+        configurable: true,
+        value: (from, to, option) =>
+            new RangeIterator(from, to, option, "number"),
+        writable: true,
+    })
+    Object.defineProperty(BigInt, "range", {
+        configurable: true,
+        value: (from, to, option) =>
+            new RangeIterator(from, to, option, "bigint"),
+        writable: true,
+    })
+    function isInfinity(x) {
+        if (typeof x !== "number") return false
+        if (Number.isFinite(x)) return false
+        return true
     }
-    // If BigInt does not exist in globalThis, this will apply to FakeBigIntConstructor and then ignored.
-    if (typeof BigInt.range !== "function") {
-        Object.defineProperty(BigInt, "range", {
-            configurable: true,
-            value: (from, to, option) =>
-                new RangeIterator(from, to, option, "bigint"),
-            writable: true,
-        })
+    /** @returns {IteratorResult<any>} */
+    function CreateIterResultObject(value, done) {
+        return { value, done }
     }
 })()
