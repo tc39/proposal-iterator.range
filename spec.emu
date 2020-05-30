@@ -15,7 +15,6 @@ contributors: "Jack Works"
     There are still some behavior not decided yet and waiting for discussion. Leave as variable in the spec.
     <emu-alg>
     1. _isAcceptAlias_: `range(to)` treated as `range(0, to)`
-    1. _directionMismatch_: What to do if the direction mismatch
     </emu-alg>
     </emu-note>
 </emu-clause>
@@ -59,13 +58,12 @@ contributors: "Jack Works"
             1. If _from_ is *+∞* or *-∞*, throws a *RangeError* exception.
             1. If _step_ is *+∞* or *-∞*, throws a *RangeError* exception.
             1. If _step_ is _zero_, throws an *RangeError* exception.
-            1. Let _iterator_ be ObjectCreate(%RangeIteratorPrototype%, « [[from]], [[to]], [[step]], [[type]], [[currentCount]], [[lastValue]] »).
+            1. Let _iterator_ be ObjectCreate(%RangeIteratorPrototype%, « [[from]], [[to]], [[step]], [[type]], [[currentCount]] »).
             1. Set _iterator_.[[from]] to _from_.
             1. Set _iterator_.[[to]] to _to_.
             1. Set _iterator_.[[step]] to _step_.
             1. Set _iterator_.[[type]] to _type_.
             1. Set _iterator_.[[currentCount]] to _zero_.
-            1. Set _iterator_.[[lastValue]] to _from_.
             1. Return _iterator_.
         </emu-alg>
     </emu-clause>
@@ -101,33 +99,17 @@ contributors: "Jack Works"
             <!-- Yield numbers -->
             1. Note:
         <emu-note type="editor">
-Basically, the algorithm in JS:
-<br />
-`let currentCount = one
-let lastValue = from
-while (ifIncrease ? !(lastValue >= to) : !(to >= lastValue)) {
-    let yielding = lastValue
-    lastValue = from + step * currentCount
-    currentCount++
-    if (ifIncrease) { if (yielding >= to) return }
-    else if (to >= yielding) return
-    yield yielding
-}`
+        In the playground it's fully implemented the spec step-by-step. https://tc39.es/proposal-Number.range/playground.html
         </emu-note>
             1.  Let _currentCount_ be _iterator_.[[currentCount]]
-            1.  Let _lastValue_ be _iterator_.[[lastValue]]
-            1.  If _ifIncrease_ is true, let _condition_ be `!(lastValue >= to)`, else let _condition_ be `!(to >= lastValue)`
-            1.  Repeat, while _condition_ evaluates to *true*,
-                1. Set _lastValue_ be _from_ + (_step_ \* _currentCount_)
-                1. Set _currentCount_ to _currentCount_ + _one_
-                <!-- Prevent value overflow -->
-                1. If _ifIncrease_ is *true* and _lastValue_ >= _to_, return CreateIterResultObject(*undeﬁned*, *true*).
-                1. If _ifIncrease_ is *false*and _to_ >= _lastValue_, return CreateIterResultObject(*undeﬁned*, *true*).
-                1. Set _iterator_.[[currentCount]] to currentCount
-                1. Set _iterator_.[[lastValue]] to lastValue
-                1. Return CreateIterResultObject(_lastValue_, *false*).
-                    <!-- Finish -->
-            1.  return CreateIterResultObject(*undeﬁned*, *true*).
+            1. Let _currentYieldingValue_ to be _from_ + (_step_ \* _currentCount_)
+            1. Let _nextCount_ to _currentCount_ + _one_
+            <!-- Prevent value overflow -->
+            1. If _ifIncrease_ is *true* and _currentYieldingValue_ >= _to_, return CreateIterResultObject(*undeﬁned*, *true*).
+            1. If _ifIncrease_ is *false* and _to_ >= _currentYieldingValue_, return CreateIterResultObject(*undeﬁned*, *true*).
+            1. Set _iterator_.[[currentCount]] to _nextCount_
+            1. Return CreateIterResultObject(_currentYieldingValue_, *false*).
+            <!-- Finish -->
         </emu-alg>
     </emu-clause>
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-@@tostringtag">
@@ -186,8 +168,6 @@ while (ifIncrease ? !(lastValue >= to) : !(to >= lastValue)) {
             <tr>
             <td>[[currentCount]]</td>
             <td>The `integer index` of the last yielded value this iterator. Must be type of number or bigint.</td>
-            <tr>
-            <tr><td>[[lastValue]]</td><td>The last iterated value. Must be type of number or bigint.</td><tr>
             </tbody>
             </table>
         </emu-table>
