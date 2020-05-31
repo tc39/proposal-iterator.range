@@ -38,13 +38,17 @@
             if (isInfinity(from)) throw RangeError()
             const ifIncrease = to > from
             /** @type {T} */ let step
-            if (typeof option === "undefined" || option === null) {
+            if (typeof option === "undefined" || option === null)
+                step = undefined
+            else if (typeof option === "object") step = option.step
+            else if (typeof option === type) step = option
+            else throw new TypeError()
+            if (step === undefined || step === null) {
                 if (ifIncrease) step = one
                 // @ts-ignore
                 else step = -one
-            } else if (typeof option === "object") step = option.step
-            else if (typeof option === type) step = option
-            else throw new TypeError()
+            }
+            if (typeof step !== type) throw new TypeError()
             if (isInfinity(step)) throw RangeError()
             if (step === zero && from !== to) throw new RangeError()
             this.#from = from
