@@ -44,7 +44,7 @@
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
             if (!isInfinity(to) && typeof to !== type) throw new TypeError()
             if (isInfinity(from) || isInfinity(step)) throw RangeError()
-            if (step === zero) throw new RangeError()
+            if (step === zero && from !== to) throw new RangeError()
             // Step 13 - 18
             this.#from = from
             this.#to = to
