@@ -16,6 +16,9 @@ Based on the document and REPL of other languages, might have error in it.
 | Swift (`Range`)    | `from...to` <br /> `from..<to`                                         |
 | Swift (`StrideTo`) | `stride(from: var_from, to: var_to, by: var_step)`                     |
 | Rust               | `(from..to)` <br /> `(from..=to)`                                      |
+| Haskell            | `[from,next_element_to_infer_step..to]`                                |
+
+Haskell: The `[from..to]` syntax produce a list. Due to the lazy evaluation of Haskell, it range semantics is different than most of languages.
 
 ### Support decimal steps (0.1, 0.2, 0.3, ...)
 
@@ -27,6 +30,7 @@ Based on the document and REPL of other languages, might have error in it.
 | Swift (`Range`)    | No       |
 | Swift (`StrideTo`) | Yes      |
 | Rust               | No       |
+| Haskell            | Yes      |
 
 ### Return type
 
@@ -38,19 +42,21 @@ Define:
 -   Own: The range have it's own class / struct / ...
 -   Instantiation: The range don't have it's own class, instead, it is implementing a more generic type like `StrideTo<int>`
 
-| Language           | Return type                                     |
-| ------------------ | ----------------------------------------------- |
-| This proposal      | Instantiation(`Iterator`), Iterator             |
-| Python             | Own, Iterable                                   |
-| Java               | Instantiation(`Stream`)                         |
-| Swift (`Range`)    | Own, Iterable                                   |
-| Swift (`StrideTo`) | Instantiation(`StrideTo`), Iterable, Non-Lazy\* |
-| Rust               | Own, Iterator                                   |
+| Language           | Return type               | Iterator 1️⃣ / Iterable 🔢 | Lazy |
+| ------------------ | ------------------------- | ------------------------- | ---- |
+| This proposal      | Instantiation(`Iterator`) | 1️⃣ Iterator               | ✅   |
+| Python             | Own                       | 🔢 Iterable               | ✅   |
+| Java               | Instantiation(`Stream`)   | ❌                        | ✅   |
+| Swift (`Range`)    | Own                       | 🔢 Iterable               | ✅   |
+| Swift (`StrideTo`) | Instantiation(`StrideTo`) | 🔢 Iterable               | ❌   |
+| Rust               | Own                       | 1️⃣ Iterator               | ✅   |
+| Haskell            | Instantiation(`[Num]`)    | ❌                        | ✅   |
 
 -   This proposal: It doesn't have it own class currently but it have it's own prototype `%RangeIteratorPrototype%` and have unique getters on it.
 -   Java: The base interface of `IntStream` (`Stream`) doesn't implements `Iterator<T>` protocol but have a `iterator()` methods that returns an Iterator. Must use with `for(int i: range.iterator())`
 -   Swift (`StrideTo`): According to the [document of `StrideTo`](https://developer.apple.com/documentation/swift/strideto/1689269-lazy), laziness is opt-in.
 -   Rust: See https://github.com/tc39/proposal-Number.range/issues/17#issuecomment-642064127
+-   Haskell: No Iterator / Iterable. The laziness is in the language. `The idea of a side-effecting iterator is antithetical to the Haskell Way.` (from StackOverflow)
 
 ### Immutable (`from`, `to` and `step` cannot be changed)
 
@@ -66,6 +72,7 @@ Define:
 | Swift (`Range`)    | Yes    | Yes  | 🙈?    |
 | Swift (`StrideTo`) | N/A    | N/A  | N/A    |
 | Rust               | No     | No   | N/A    |
+| Haskell            | N/A    | N/A  | N/A    |
 
 ### Algorithm (for floating point number)
 
@@ -79,6 +86,7 @@ Define:
 | Python             | ✖         |
 | Java               | ➕        |
 | Swift (`StrideTo`) | ➕        |
+| Haskell            | ➕        |
 
 ### Inclusive or exclusive?
 
@@ -89,21 +97,43 @@ Define:
 | Java          | Yes <br />(`range()`) | No          | No          | Yes <br />(`rangeClosed()`) |
 | Swift         | Yes <br />(`1..<3`)   | No          | No          | Yes <br />(`1...3`)         |
 | Rust          | Yes <br /> (`(1..3)`) | No          | No          | Yes <br />(`(1..=3)`)       |
+| Haskell       | No                    | No          | No          | Yes                         |
 
-### (Too big) Overflow behavior
+### (Too big) Overflow behavior for Int type (BigInt-like range not included)
 
-| Language           | Behavior                                             |
-| ------------------ | ---------------------------------------------------- |
-| This proposal      | Not decided yet                                      |
-| Python             | Allowed, but fails `len()` etc. with `OverflowError` |
-| Java               | Emit nothing                                         |
-| Swift (`Range`)    | N/A, can't set `to` bigger than 9223372036854775807  |
-| Swift (`StrideTo`) | Emit nothing                                         |
-| Rust               | Endless loop                                         |
+| Language           | Behavior                                                |
+| ------------------ | ------------------------------------------------------- |
+| This proposal      | ❔ Not decided yet                                      |
+| Python             | ❎ Allowed, but fails `len()` etc. with `OverflowError` |
+| Java               | ⚫ Emit nothing                                         |
+| Swift (`Range`)    | N/A, can't set `to` bigger than 9223372036854775807     |
+| Swift (`StrideTo`) | ⚫ Emit nothing                                         |
+| Rust               | ♾ Endless loop                                          |
+| Haskell            | ❌ Exception                                            |
 
--   Java: Test with code `IntStream.rangeClosed(Integer.MAX_VALUE, Integer.MAX_VALUE+100).forEach(s->System.out.print(s +" "));`
--   Swift: Test with code `for i in stride(from: 1.7E+308, to: (1.7E+308)+3, by: 1) { print(i) }`
+-   Java: Test with code
+
+```java
+IntStream
+    .rangeClosed(Integer.MAX_VALUE, Integer.MAX_VALUE+100)
+    .forEach(s -> System.out.print(s + " "));
+```
+
+-   Swift: Test with code
+
+```swift
+for i in stride(from: 1.7E+308, to: (1.7E+308)+3, by: 1) {
+    print(i)
+}
+```
+
 -   Rust: From the Rust document: `if you use an integer range and the integer overflows, it might panic in debug mode or create an endless loop in release mode.` (https://doc.rust-lang.org/std/ops/struct.RangeFrom.html)
+-   Haskell: Test with code
+
+```haskell
+x = 9223372036854775806 :: Int
+[x..] !! 2
+```
 
 ### (Too small) Floating point error behavior
 
@@ -117,8 +147,10 @@ Define:
 | Swift (`Range`)    | N/A             |
 | Swift (`StrideTo`) | Emit nothing    |
 | Rust               | N/A             |
+| haskell            | ?               |
 
 -   Swift: Test with code `for i in stride(from: 1e323, to: (1e323 + 1e-323 * 2), by: 1e-323) { print(i) }`
+-   Haskell: Test with code `[1.7976931348623157e308..1.7976931348623158e308] !! 1500 == [1.7976931348623157e308..1.7976931348623158e308] !! 15`
 
 ## Protocols/methods that range implements
 
@@ -137,6 +169,7 @@ e.g. `range(0, 1).includes(0.5)` should be false
 | Java          | Maybe `range.anyMatch(testFn)`? |
 | Swift         | `range.contains(x)`             |
 | Rust          | `range.contains(&item)`         |
+| Haskell       | `elem x [y..z]`                 |
 
 ### `[[Get]]` (`range[index]`)
 
@@ -148,6 +181,7 @@ e.g. `range(0, 1).includes(0.5)` should be false
 | Swift (`Range`)    | `r.subscript(x)` |
 | Swift (`StrideTo`) | No               |
 | Rust               | No               |
+| Haskell            | `[x..y] !! i`    |
 
 ### `[Symbol.slice]` (slice notation proposal)
 
@@ -159,6 +193,7 @@ e.g. `range(0, 1).includes(0.5)` should be false
 | Swift (`Range`)    | `range.clamped(to)` | No                |
 | Swift (`StrideTo`) | No                  | No                |
 | Rust               | `range[from .. to]` | No                |
+| Haskell            | No?                 | No?               |
 
 ### Omitted protocol / methods:
 
@@ -200,6 +235,10 @@ Many methods require a non-lazy semantics.
 -   `isEmpty`: Not included yet, wait for community feedback
 -   `impl Index<Range<usize>> for String`: Related to the slice notation proposal, also see https://github.com/tc39/proposal-Number.range/issues/22#issuecomment-641864077
 
+#### Haskell
+
+-   Most of functions are common operation to lists therefore not included.
+
 ## Notes
 
 1. Python means Python 3 in this document.
@@ -211,3 +250,4 @@ Many methods require a non-lazy semantics.
 -   Swift `Range`: https://developer.apple.com/documentation/swift/Range
 -   Swift `StrideTo`: https://developer.apple.com/documentation/swift/strideto
 -   Rust `Range{From,To,Inclusive,ToInclusive}`: https://doc.rust-lang.org/std/ops/struct.Range.html
+-   Haskell: https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-List.html
