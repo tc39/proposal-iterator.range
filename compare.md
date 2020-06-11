@@ -17,6 +17,7 @@ Based on the document and REPL of other languages, might have error in it.
 | Swift (`StrideTo`) | `stride(from: var_from, to: var_to, by: var_step)`                     |
 | Rust               | `(from..to)` <br /> `(from..=to)`                                      |
 | Haskell            | `[from,next_element_to_infer_step..to]`                                |
+| F#                 | `seq { from .. step .. to }`                                           |
 
 Haskell: The `[from..to]` syntax produce a list. Due to the lazy evaluation of Haskell, it range semantics is different than most of languages.
 
@@ -31,6 +32,7 @@ Haskell: The `[from..to]` syntax produce a list. Due to the lazy evaluation of H
 | Swift (`StrideTo`) | Yes      |
 | Rust               | No       |
 | Haskell            | Yes      |
+| F#                 | Yes      |
 
 ### Return type
 
@@ -50,7 +52,8 @@ Define:
 | Swift (`Range`)    | Own                       | 🔢 Iterable               | ✅   |
 | Swift (`StrideTo`) | Instantiation(`StrideTo`) | 🔢 Iterable               | ❌   |
 | Rust               | Own                       | 1️⃣ Iterator               | ✅   |
-| Haskell            | Instantiation(`[Num]`)    | ❌                        | ✅   |
+| Haskell            | Instantiation(`[Num]`)    | N/A                       | ✅   |
+| F#                 | Instantiation(`seq<'T>`)  | 🔢 Iterable               | ✅   |
 
 -   This proposal: It doesn't have it own class currently but it have it's own prototype `%RangeIteratorPrototype%` and have unique getters on it.
 -   Java: The base interface of `IntStream` (`Stream`) doesn't implements `Iterator<T>` protocol but have a `iterator()` methods that returns an Iterator. Must use with `for(int i: range.iterator())`
@@ -73,8 +76,11 @@ Define:
 | Swift (`StrideTo`) | N/A    | N/A  | N/A    |
 | Rust               | No     | No   | N/A    |
 | Haskell            | N/A    | N/A  | N/A    |
+| F#                 | ?      | ?    | ?      |
 
 ### Algorithm (for floating point number)
+
+> Generally test with range 0 to 1 with step 0.1
 
 -   ➕: `thisValue = last + step`
 -   ✖: `thisValue = start + step * i`
@@ -87,6 +93,7 @@ Define:
 | Java               | ➕        |
 | Swift (`StrideTo`) | ➕        |
 | Haskell            | ➕        |
+| F#                 | ✖         |
 
 ### Inclusive or exclusive?
 
@@ -98,6 +105,7 @@ Define:
 | Swift         | Yes <br />(`1..<3`)   | No          | No          | Yes <br />(`1...3`)         |
 | Rust          | Yes <br /> (`(1..3)`) | No          | No          | Yes <br />(`(1..=3)`)       |
 | Haskell       | No                    | No          | No          | Yes                         |
+| F#            | No                    | No          | No          | Yes                         |
 
 ### (Too big) Overflow behavior for Int type (BigInt-like range not included)
 
@@ -110,6 +118,7 @@ Define:
 | Swift (`StrideTo`) | ⚫ Emit nothing                                         |
 | Rust               | ♾ Endless loop                                          |
 | Haskell            | ❌ Exception                                            |
+| F#                 | ?                                                       |
 
 -   Java: Test with code
 
@@ -148,6 +157,7 @@ x = 9223372036854775806 :: Int
 | Swift (`StrideTo`) | Emit nothing    |
 | Rust               | N/A             |
 | haskell            | ?               |
+| F#                 | ?               |
 
 -   Swift: Test with code `for i in stride(from: 1e323, to: (1e323 + 1e-323 * 2), by: 1e-323) { print(i) }`
 -   Haskell: Test with code `[1.7976931348623157e308..1.7976931348623158e308] !! 1500 == [1.7976931348623157e308..1.7976931348623158e308] !! 15`
@@ -170,6 +180,7 @@ e.g. `range(0, 1).includes(0.5)` should be false
 | Swift         | `range.contains(x)`             |
 | Rust          | `range.contains(&item)`         |
 | Haskell       | `elem x [y..z]`                 |
+| F#            | `Seq.contains x seq {from..to}` |
 
 ### `[[Get]]` (`range[index]`)
 
@@ -182,6 +193,7 @@ e.g. `range(0, 1).includes(0.5)` should be false
 | Swift (`StrideTo`) | No               |
 | Rust               | No               |
 | Haskell            | `[x..y] !! i`    |
+| F#                 | No?              |
 
 ### `[Symbol.slice]` (slice notation proposal)
 
@@ -194,6 +206,7 @@ e.g. `range(0, 1).includes(0.5)` should be false
 | Swift (`StrideTo`) | No                  | No                |
 | Rust               | `range[from .. to]` | No                |
 | Haskell            | No?                 | No?               |
+| F#                 | No?                 | No?               |
 
 ### Omitted protocol / methods:
 
@@ -239,6 +252,10 @@ Many methods require a non-lazy semantics.
 
 -   Most of functions are common operation to lists therefore not included.
 
+#### F
+
+-   Sequences are represented by the `seq<'T>` type, which is an alias for `IEnumerable<T>`(similar to `Iteratable<T>` in TS).
+
 ## Notes
 
 1. Python means Python 3 in this document.
@@ -251,3 +268,4 @@ Many methods require a non-lazy semantics.
 -   Swift `StrideTo`: https://developer.apple.com/documentation/swift/strideto
 -   Rust `Range{From,To,Inclusive,ToInclusive}`: https://doc.rust-lang.org/std/ops/struct.Range.html
 -   Haskell: https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-List.html
+-   F#: https://docs.microsoft.com/en-US/dotnet/fsharp/language-reference/sequences and https://msdn.microsoft.com/visualfsharpdocs/conceptual/collections.seq-module-%5bfsharp%5d
