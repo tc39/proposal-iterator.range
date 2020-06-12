@@ -116,7 +116,7 @@ Define:
 | Java               | ⚫ Emit nothing                                         |
 | Swift (`Range`)    | N/A, can't set `to` bigger than 9223372036854775807     |
 | Swift (`StrideTo`) | ⚫ Emit nothing                                         |
-| Rust               | ♾ Endless loop                                          |
+| Rust               | ♾ Endless loop (Production) / ❌ Panic (Debug)          |
 | Haskell            | ❌ Exception                                            |
 | F#                 | ?                                                       |
 
