@@ -39,13 +39,14 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 -   -   Incremental (0, 1, 2, 3, ...)
 -   -   Decremental (0, -1, -2, -3, ...)
 -   -   Step (0, 2, 4, 6, ...)
--   -   -   Decimal step (Should we?) (0, 0.2, 0.4, ...)
+-   -   -   Decimal step (0, 0.2, 0.4, ...)
 -   BigInt Support
 -   -   Same as Arithmetic Sequence
 -   Infinite Sequence `Number.range(0, Infinity)` -> (0, 1, 2, 3, ...)
 
 ### Non-goals
 
+-   New Syntax
 -   String Sequence (a, b, c, d, ...)
 -   Magic
 -   -   E.g. `if (x in Number.range(0, 10))` (Kotlin have this feature)
@@ -54,11 +55,19 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 
 #### Discussions in Issue
 
--   How to deal with bad inputs?
--   Should we throw on `Number.range(42, 100, 1e-323)`? (See: [#7](https://github.com/tc39/proposal-Number.range/issues/7))
--   Add helpers methods on the return value ([#12](https://github.com/tc39/proposal-Number.range/issues/12))
--   What should `range(n)` (with no second parameter) means ([#18](https://github.com/tc39/proposal-Number.range/issues/18) or [#14](https://github.com/tc39/proposal-Number.range/issues/14))
--   Add a new syntax like `2...3` instead of a `Number.range()`? ([#20](https://github.com/tc39/proposal-Number.range/issues/20))
+##### Important semantics discussion
+
+-   [#17: Iterator or Iterable](https://github.com/tc39/proposal-Number.range/issues/17)
+-   [#22: Class or plain object](https://github.com/tc39/proposal-Number.range/issues/22)
+-   [#33: Precision lost (Number.MAX_VALUE + 20 === Number.MAX_VALUE) behavior](https://github.com/tc39/proposal-Number.range/issues/33)
+-   [#34: Precision lost (1e-324 + 1e-324) === (1e-324) behavior](https://github.com/tc39/proposal-Number.range/issues/34)
+
+##### Others
+
+-   [#13: Integration with Slice notation proposal](https://github.com/tc39/proposal-Number.range/issues/13)
+-   [#18: Alias Number.range(end) for Number.range(0, end)](https://github.com/tc39/proposal-Number.range/issues/18)
+-   [#19: API design (move to NumberRangeIterator, BigIntRangeIterator or Iterator.range)](https://github.com/tc39/proposal-Number.range/issues/19)
+-   [#25: Possible options](https://github.com/tc39/proposal-Number.range/issues/25)
 
 #### Others
 
