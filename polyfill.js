@@ -10,33 +10,33 @@
      */
     /**
      * @type {boolean}
-     * This flag treat `range(to)` as `range(0, to)`
+     * This flag treat `range(end)` as `range(0, end)`
      */
     const isAcceptAlias = false
     /** @template {number | bigint} T */
     class RangeIterator {
         /**
-         * @param {T} from
-         * @param {T | number | undefined} to
+         * @param {T} start
+         * @param {T | number | undefined} end
          * @param {T | undefined | null | { step?: T }} option
          * @param {"number" | "bigint"} type
          */
-        constructor(from, to, option, type) {
-            if (typeof from !== type) throw new TypeError()
+        constructor(start, end, option, type) {
+            if (typeof start !== type) throw new TypeError()
             if (type !== "number" && type !== "bigint") throw new TypeError() // @ts-ignore
             /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
             /** @type {T} */ const one = type === "bigint" ? 1n : 1
             if (isAcceptAlias === false) {
-            } else if (typeof to === "undefined") {
-                // range(to) equals to range(zero, to)
-                to = from
-                from = zero
+            } else if (typeof end === "undefined") {
+                // range(end) equals to range(zero, end)
+                end = start
+                start = zero
             }
-            if (typeof from !== type) throw new TypeError()
+            if (typeof start !== type) throw new TypeError()
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
-            if (!isInfinity(to) && typeof to !== type) throw new TypeError()
-            if (isInfinity(from)) throw RangeError()
-            const ifIncrease = to > from
+            if (!isInfinity(end) && typeof end !== type) throw new TypeError()
+            if (isInfinity(start)) throw RangeError()
+            const ifIncrease = end > start
             /** @type {T} */ let step
             if (typeof option === "undefined" || option === null)
                 step = undefined
@@ -50,17 +50,17 @@
             }
             if (typeof step !== type) throw new TypeError()
             if (isInfinity(step)) throw RangeError()
-            if (step === zero && from !== to) throw new RangeError()
-            this.#from = from
-            this.#to = to
+            if (step === zero && start !== end) throw new RangeError()
+            this.#start = start
+            this.#end = end
             this.#step = step
             this.#type = type
             this.#currentCount = zero
             return this
         }
         //#region internal slots
-        /** @type {T} */ #from
-        /** @type {number | bigint} */ #to
+        /** @type {T} */ #start
+        /** @type {number | bigint} */ #end
         /** @type {T} */ #step
         /** @type {"number" | "bigint"} */ #type
         /** @type {T} */ #currentCount
@@ -69,35 +69,35 @@
          * @returns {IteratorResult<T>}
          */
         next() {
-            const from = this.#from
-            const to = this.#to
+            const start = this.#start
+            const end = this.#end
             const step = this.#step
             const type = this.#type
             if (type !== "bigint" && type !== "number") throw new TypeError()
-            if (from === to) return CreateIterResultObject(undefined, true) // @ts-ignore
+            if (start === end) return CreateIterResultObject(undefined, true) // @ts-ignore
             /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
             /** @type {T} */ const one = type === "bigint" ? 1n : 1
-            if (Number.isNaN(from) || Number.isNaN(to) || Number.isNaN(step))
+            if (Number.isNaN(start) || Number.isNaN(end) || Number.isNaN(step))
                 return CreateIterResultObject(undefined, true)
-            const ifIncrease = to > from
+            const ifIncrease = end > start
             const ifStepIncrease = step > zero
             if (ifIncrease !== ifStepIncrease)
                 return CreateIterResultObject(undefined, true)
             const currentCount = this.#currentCount // @ts-ignore
-            const currentYieldingValue = from + step * currentCount // @ts-ignore
+            const currentYieldingValue = start + step * currentCount // @ts-ignore
             const nextCount = currentCount + one
-            if (ifIncrease && currentYieldingValue >= to)
+            if (ifIncrease && currentYieldingValue >= end)
                 return CreateIterResultObject(undefined, true)
-            if (!ifIncrease && to >= currentYieldingValue)
+            if (!ifIncrease && end >= currentYieldingValue)
                 return CreateIterResultObject(undefined, true)
             this.#currentCount = nextCount
             return CreateIterResultObject(currentYieldingValue, false)
         }
-        get from() {
-            return this.#from
+        get start() {
+            return this.#start
         }
-        get to() {
-            return this.#to
+        get end() {
+            return this.#end
         }
         get step() {
             return this.#step
@@ -116,14 +116,14 @@
     Object.defineProperty(Number, "range", {
         configurable: true,
         writable: true,
-        value: (from, to, option) =>
-            new RangeIterator(from, to, option, "number"),
+        value: (start, end, option) =>
+            new RangeIterator(start, end, option, "number"),
     })
     Object.defineProperty(BigInt, "range", {
         configurable: true,
         writable: true,
-        value: (from, to, option) =>
-            new RangeIterator(from, to, option, "bigint"),
+        value: (start, end, option) =>
+            new RangeIterator(start, end, option, "bigint"),
     })
     function isInfinity(x) {
         if (typeof x !== "number") return false

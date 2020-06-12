@@ -8,18 +8,18 @@ Based on the document and REPL of other languages, might have error in it.
 
 ### Syntax
 
-| Language           | Syntax                                                                 |
-| ------------------ | ---------------------------------------------------------------------- |
-| This proposal      | `Number.range(from, to, step?)` <br /> `Bigint.range(from, to, step?)` |
-| Python             | `range(from, to, step?)` <br /> `range(to)`                            |
-| Java               | `IntStream.range(from, to)` <br /> `LongStream.range(from, to)`        |
-| Swift (`Range`)    | `from...to` <br /> `from..<to`                                         |
-| Swift (`StrideTo`) | `stride(from: var_from, to: var_to, by: var_step)`                     |
-| Rust               | `(from..to)` <br /> `(from..=to)`                                      |
-| Haskell            | `[from,next_element_to_infer_step..to]`                                |
-| F#                 | `seq { from .. step .. to }`                                           |
+| Language           | Syntax                                                                   |
+| ------------------ | ------------------------------------------------------------------------ |
+| This proposal      | `Number.range(start, to, step?)` <br /> `Bigint.range(start, to, step?)` |
+| Python             | `range(start, to, step?)` <br /> `range(to)`                             |
+| Java               | `IntStream.range(start, to)` <br /> `LongStream.range(start, to)`        |
+| Swift (`Range`)    | `start...to` <br /> `start..<to`                                         |
+| Swift (`StrideTo`) | `stride(from: var_start, to: var_to, by: var_step)`                      |
+| Rust               | `(start..to)` <br /> `(start..=to)`                                      |
+| Haskell            | `[start,next_element_to_infer_step..to]`                                 |
+| F#                 | `seq { start .. step .. to }`                                            |
 
-Haskell: The `[from..to]` syntax produce a list. Due to the lazy evaluation of Haskell, it range semantics is different than most of languages.
+Haskell: The `[start..to]` syntax produce a list. Due to the lazy evaluation of Haskell, it range semantics is different than most of languages.
 
 ### Support decimal steps (0.1, 0.2, 0.3, ...)
 
@@ -59,24 +59,24 @@ Define:
 -   Java: The base interface of `IntStream` (`Stream`) doesn't implements `Iterator<T>` protocol but have a `iterator()` methods that returns an Iterator. Must use with `for(int i: range.iterator())`
 -   Swift (`StrideTo`): According to the [document of `StrideTo`](https://developer.apple.com/documentation/swift/strideto/1689269-lazy), laziness is opt-in.
 -   Rust: See https://github.com/tc39/proposal-Number.range/issues/17#issuecomment-642064127
--   Haskell: No Iterator / Iterable. The laziness is in the language. `The idea of a side-effecting iterator is antithetical to the Haskell Way.` (from StackOverflow)
+-   Haskell: No Iterator / Iterable. The laziness is in the language. `The idea of a side-effecting iterator is antithetical to the Haskell Way.` (start StackOverflow)
 
-### Immutable (`from`, `to` and `step` cannot be changed)
+### Immutable (`start`, `to` and `step` cannot be changed)
 
 -   Yes: immutable
 -   No: Mutable
 -   🙈 means this value is not exposed to developers
 
-| Language           | `from` | `to` | `step` |
-| ------------------ | ------ | ---- | ------ |
-| This proposal      | Yes    | Yes  | Yes    |
-| Python             | Yes    | Yes  | Yes    |
-| Java               | N/A    | N/A  | N/A    |
-| Swift (`Range`)    | Yes    | Yes  | 🙈?    |
-| Swift (`StrideTo`) | N/A    | N/A  | N/A    |
-| Rust               | No     | No   | N/A    |
-| Haskell            | N/A    | N/A  | N/A    |
-| F#                 | ?      | ?    | ?      |
+| Language           | `start` | `to` | `step` |
+| ------------------ | ------- | ---- | ------ |
+| This proposal      | Yes     | Yes  | Yes    |
+| Python             | Yes     | Yes  | Yes    |
+| Java               | N/A     | N/A  | N/A    |
+| Swift (`Range`)    | Yes     | Yes  | 🙈?    |
+| Swift (`StrideTo`) | N/A     | N/A  | N/A    |
+| Rust               | No      | No   | N/A    |
+| Haskell            | N/A     | N/A  | N/A    |
+| F#                 | ?       | ?    | ?      |
 
 ### Algorithm (for floating point number)
 
@@ -97,15 +97,15 @@ Define:
 
 ### Inclusive or exclusive?
 
-| Language      | `[from,to)`           | `(from,to)` | `(from,to]` | `[from,to]`                 |
-| ------------- | --------------------- | ----------- | ----------- | --------------------------- |
-| This proposal | Yes                   | No          | No          | No                          |
-| Python        | Yes                   | No          | No          | No                          |
-| Java          | Yes <br />(`range()`) | No          | No          | Yes <br />(`rangeClosed()`) |
-| Swift         | Yes <br />(`1..<3`)   | No          | No          | Yes <br />(`1...3`)         |
-| Rust          | Yes <br /> (`(1..3)`) | No          | No          | Yes <br />(`(1..=3)`)       |
-| Haskell       | No                    | No          | No          | Yes                         |
-| F#            | No                    | No          | No          | Yes                         |
+| Language      | `[start,to)`          | `(start,to)` | `(start,to]` | `[start,to]`                |
+| ------------- | --------------------- | ------------ | ------------ | --------------------------- |
+| This proposal | Yes                   | No           | No           | No                          |
+| Python        | Yes                   | No           | No           | No                          |
+| Java          | Yes <br />(`range()`) | No           | No           | Yes <br />(`rangeClosed()`) |
+| Swift         | Yes <br />(`1..<3`)   | No           | No           | Yes <br />(`1...3`)         |
+| Rust          | Yes <br /> (`(1..3)`) | No           | No           | Yes <br />(`(1..=3)`)       |
+| Haskell       | No                    | No           | No           | Yes                         |
+| F#            | No                    | No           | No           | Yes                         |
 
 ### (Too big) Overflow behavior for Int type (BigInt-like range not included)
 
@@ -172,15 +172,15 @@ Semantics: Is given `x` in the `range`
 
 e.g. `range(0, 1).includes(0.5)` should be false
 
-| Language      | Syntax                          |
-| ------------- | ------------------------------- |
-| This proposal | Not yet                         |
-| Python        | `x in range`                    |
-| Java          | Maybe `range.anyMatch(testFn)`? |
-| Swift         | `range.contains(x)`             |
-| Rust          | `range.contains(&item)`         |
-| Haskell       | `elem x [y..z]`                 |
-| F#            | `Seq.contains x seq {from..to}` |
+| Language      | Syntax                           |
+| ------------- | -------------------------------- |
+| This proposal | Not yet                          |
+| Python        | `x in range`                     |
+| Java          | Maybe `range.anyMatch(testFn)`?  |
+| Swift         | `range.contains(x)`              |
+| Rust          | `range.contains(&item)`          |
+| Haskell       | `elem x [y..z]`                  |
+| F#            | `Seq.contains x seq {start..to}` |
 
 ### `[[Get]]` (`range[index]`)
 
@@ -197,16 +197,16 @@ e.g. `range(0, 1).includes(0.5)` should be false
 
 ### `[Symbol.slice]` (slice notation proposal)
 
-| Language           | Syntax              | With step         |
-| ------------------ | ------------------- | ----------------- |
-| This proposal      | Not yet             | Not yet           |
-| Python             | `range[i:j]`        | `range[i:j:step]` |
-| Java               | No                  | No                |
-| Swift (`Range`)    | `range.clamped(to)` | No                |
-| Swift (`StrideTo`) | No                  | No                |
-| Rust               | `range[from .. to]` | No                |
-| Haskell            | No?                 | No?               |
-| F#                 | No?                 | No?               |
+| Language           | Syntax               | With step         |
+| ------------------ | -------------------- | ----------------- |
+| This proposal      | Not yet              | Not yet           |
+| Python             | `range[i:j]`         | `range[i:j:step]` |
+| Java               | No                   | No                |
+| Swift (`Range`)    | `range.clamped(to)`  | No                |
+| Swift (`StrideTo`) | No                   | No                |
+| Rust               | `range[start .. to]` | No                |
+| Haskell            | No?                  | No?               |
+| F#                 | No?                  | No?               |
 
 ### Omitted protocol / methods:
 
