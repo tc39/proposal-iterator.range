@@ -99,7 +99,7 @@ Define:
 
 | Language      | `[start,to)`          | `(start,to)` | `(start,to]` | `[start,to]`                |
 | ------------- | --------------------- | ------------ | ------------ | --------------------------- |
-| This proposal | Yes                   | No           | No           | No                          |
+| This proposal | Yes                   | No           | No           | Yes                         |
 | Python        | Yes                   | No           | No           | No                          |
 | Java          | Yes <br />(`range()`) | No           | No           | Yes <br />(`rangeClosed()`) |
 | Swift         | Yes <br />(`1..<3`)   | No           | No           | Yes <br />(`1...3`)         |
