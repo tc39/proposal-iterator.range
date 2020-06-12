@@ -18,7 +18,7 @@
         /**
          * @param {T} start
          * @param {T | number | undefined} end
-         * @param {T | undefined | null | { step?: T }} option
+         * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
          * @param {"number" | "bigint"} type
          */
         constructor(start, end, option, type) {
@@ -37,11 +37,14 @@
             if (!isInfinity(end) && typeof end !== type) throw new TypeError()
             if (isInfinity(start)) throw RangeError()
             const ifIncrease = end > start
+            let inclusiveEnd = false
             /** @type {T} */ let step
             if (typeof option === "undefined" || option === null)
                 step = undefined
-            else if (typeof option === "object") step = option.step
-            else if (typeof option === type) step = option
+            else if (typeof option === "object") {
+                step = option.step
+                inclusiveEnd = Boolean(option.inclusive)
+            } else if (typeof option === type) step = option
             else throw new TypeError()
             if (step === undefined || step === null) {
                 if (ifIncrease) step = one
@@ -55,6 +58,7 @@
             this.#end = end
             this.#step = step
             this.#type = type
+            this.#inclusiveEnd = inclusiveEnd
             this.#currentCount = zero
             return this
         }
@@ -64,6 +68,7 @@
         /** @type {T} */ #step
         /** @type {"number" | "bigint"} */ #type
         /** @type {T} */ #currentCount
+        /** @type {boolean} */ #inclusiveEnd
         //#endregion
         /**
          * @returns {IteratorResult<T>}
@@ -73,6 +78,7 @@
             const end = this.#end
             const step = this.#step
             const type = this.#type
+            const inclusiveEnd = this.#inclusiveEnd
             if (type !== "bigint" && type !== "number") throw new TypeError()
             if (start === end) return CreateIterResultObject(undefined, true) // @ts-ignore
             /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
@@ -86,10 +92,15 @@
             const currentCount = this.#currentCount // @ts-ignore
             const currentYieldingValue = start + step * currentCount // @ts-ignore
             const nextCount = currentCount + one
-            if (ifIncrease && currentYieldingValue >= end)
-                return CreateIterResultObject(undefined, true)
-            if (!ifIncrease && end >= currentYieldingValue)
-                return CreateIterResultObject(undefined, true)
+            let endCondition = false
+            if (ifIncrease) {
+                if (inclusiveEnd) endCondition = currentYieldingValue > end
+                else endCondition = currentYieldingValue >= end
+            } else {
+                if (inclusiveEnd) endCondition = end > currentYieldingValue
+                else endCondition = end >= currentYieldingValue
+            }
+            if (endCondition) return CreateIterResultObject(undefined, true)
             this.#currentCount = nextCount
             return CreateIterResultObject(currentYieldingValue, false)
         }
@@ -101,6 +112,9 @@
         }
         get step() {
             return this.#step
+        }
+        get inclusive() {
+            return this.#inclusiveEnd
         }
     }
     const IteratorPrototype = Object.getPrototypeOf(
