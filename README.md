@@ -59,8 +59,6 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 
 -   [#17: Iterator or Iterable](https://github.com/tc39/proposal-Number.range/issues/17)
 -   [#22: Class or plain object](https://github.com/tc39/proposal-Number.range/issues/22)
--   [#33: Precision lost (Number.MAX_VALUE + 20 === Number.MAX_VALUE) behavior](https://github.com/tc39/proposal-Number.range/issues/33)
--   [#34: Precision lost (1e-324 + 1e-324) === (1e-324) behavior](https://github.com/tc39/proposal-Number.range/issues/34)
 
 ##### Others
 
