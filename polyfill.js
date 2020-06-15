@@ -69,11 +69,13 @@
         /** @type {"number" | "bigint"} */ #type
         /** @type {T} */ #currentCount
         /** @type {boolean} */ #inclusiveEnd
+        /** @type {boolean} */ #hitsEnd
         //#endregion
         /**
          * @returns {IteratorResult<T>}
          */
         next() {
+            if (this.#hitsEnd) return CreateIterResultObject(undefined, true)
             const start = this.#start
             const end = this.#end
             const step = this.#step
@@ -90,7 +92,8 @@
             if (ifIncrease !== ifStepIncrease)
                 return CreateIterResultObject(undefined, true)
             const currentCount = this.#currentCount // @ts-ignore
-            const currentYieldingValue = start + step * currentCount // @ts-ignore
+            const currentYieldingValue = start + step * currentCount
+            if (currentYieldingValue === end) this.#hitsEnd = true // @ts-ignore
             const nextCount = currentCount + one
             let endCondition = false
             if (ifIncrease) {
@@ -144,7 +147,11 @@
         if (Number.isFinite(x)) return false
         return true
     }
-    /** @returns {IteratorResult<any>} */
+    /**
+     * @returns {IteratorResult<any>}
+     * @param {any} value
+     * @param {boolean} done
+     */
     function CreateIterResultObject(value, done) {
         return { value, done }
     }
