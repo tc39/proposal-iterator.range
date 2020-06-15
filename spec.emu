@@ -89,6 +89,7 @@ contributors: "Jack Works"
             1.  Let _iterator_ be the *this* value.
             1.  If Type(_iterator_) is not Object, throw a *TypeError* exception.
             1.  If _iterator_ does not have all of the internal slots of a Range Iterator Instance, throw a *TypeError* exception.
+            1.  If _iterator_.[[hitsEnd]] is *true*, return CreateIterResultObject(*undefined*, true).
             <!-- Deconstruct variables -->
             1.  Let _start_ be _iterator_.[[start]].
             1.  Let _end_ be _iterator_.[[end]].
@@ -114,6 +115,7 @@ contributors: "Jack Works"
         </emu-note>
             1.  Let _currentCount_ be _iterator_.[[currentCount]]
             1. Let _currentYieldingValue_ to be _start_ + (_step_ \* _currentCount_)
+            1. If _currentYieldingValue_ equal to _end_, Set _iterator_.[[hitsEnd]] to *true*.
             1. Let _nextCount_ to _currentCount_ + _one_
             <!-- Prevent value overflow -->
             1. Let _endCondition_ be false.
@@ -194,6 +196,7 @@ contributors: "Jack Works"
             <tr><td>[[step]]</td><td>The range step size.</td><tr>
             <tr><td>[[type]]</td><td>Must be *"number"* or *"bigint"*.</td><tr>
             <tr><td>[[inclusiveEnd]]</td><td>Boolean. If the end is inclusive.</td><tr>
+            <tr><td>[[hitsEnd]]</td><td>Boolean. If the end is hitted.</td><tr>
             <tr>
             <td>[[currentCount]]</td>
             <td>The `integer index` of the last yielded value this iterator. Must be type of number or bigint.</td>
