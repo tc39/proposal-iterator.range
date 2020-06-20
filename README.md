@@ -87,6 +87,10 @@ function* even() {
 ;[...Number.range(1, 100, 2)] // odd number from 1 to 99
 ```
 
+# Presentations
+
+- 2020 Apr [Notes](https://github.com/tc39/notes/blob/master/meetings/2020-03/april-1.md#numberrange-and-bigintrange-for-stage-1) [Slides](https://docs.google.com/presentation/d/1JD9SrOEtGEviPYJ3LQGKRqDHYeF-EIt7RHB92hKPWzo/)
+
 ### Signature
 
 See [global.d.ts](./global.d.ts)
