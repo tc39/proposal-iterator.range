@@ -1,5 +1,7 @@
 /// <reference path="../global.d.ts" />
 require("../polyfill.js")
+require("core-js/proposals/iterator-helpers")
+
 test("Number.range", () => {
     expect(that(Number.range(-1, 5))).toMatchInlineSnapshot(`"-1f, 0f, 1f, 2f, 3f, 4f"`)
     expect(that(Number.range(-5, 1))).toMatchInlineSnapshot(`"-5f, -4f, -3f, -2f, -1f, 0f"`)
@@ -35,6 +37,14 @@ test("Range to infinity", () => {
         }
         expect(q).toMatchInlineSnapshot(`2550n`)
     }
+})
+
+test("Use with Iterator helpers", () => {
+    expect(that(Number.range(0, 10).take(5))).toMatchInlineSnapshot(`"0f, 1f, 2f, 3f, 4f"`)
+    expect(that(Number.range(0, 10).map((x) => x * 2))).toMatchInlineSnapshot(
+        `"0f, 2f, 4f, 6f, 8f, 10f, 12f, 14f, 16f, 18f"`
+    )
+    expect(BigInt.range(0n, 10n).reduce((prev, curr) => prev + curr, 0n)).toMatchInlineSnapshot(`45n`)
 })
 
 test("Be an iterator", () => {
