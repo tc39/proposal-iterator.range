@@ -4,7 +4,8 @@
     "description": "A repository template for ECMAScript proposals.",
     "scripts": {
         "start": "ecmarkup spec.emu index.html --watch",
-        "build": "ecmarkup spec.emu index.html"
+        "build": "ecmarkup spec.emu index.html",
+        "test": "jest --coverage --coverage-provider=v8"
     },
     "homepage": "https://github.com/tc39/template-for-proposals#readme",
     "repository": {
@@ -13,6 +14,9 @@
     },
     "license": "MIT",
     "devDependencies": {
-        "ecmarkup": "^3.11.5"
+        "@types/jest": "^26.0.0",
+        "ecmarkup": "^3.11.5",
+        "jest": "^26.0.1",
+        "prettier": "^2.0.5"
     }
 }

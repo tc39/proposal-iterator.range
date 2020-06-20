@@ -2,17 +2,7 @@
 /// <reference path="./global.d.ts" />
 // syntax target = es2020
 // This polyfill requires: globalThis, BigInt & private fields
-{
-    /*
-     * Behaviour flags
-     * This proposal is in early stage.
-     * Use which in the end depends on community discussion.
-     */
-    /**
-     * @type {boolean}
-     * This flag treat `range(end)` as `range(0, end)`
-     */
-    const isAcceptAlias = false
+;(() => {
     /** @template {number | bigint} T */
     class RangeIterator {
         /**
@@ -22,25 +12,16 @@
          * @param {"number" | "bigint"} type
          */
         constructor(start, end, option, type) {
-            if (typeof start !== type) throw new TypeError()
-            if (type !== "number" && type !== "bigint") throw new TypeError() // @ts-ignore
+            if (typeof start !== type) throw new TypeError() // @ts-ignore
             /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
             /** @type {T} */ const one = type === "bigint" ? 1n : 1
-            if (isAcceptAlias === false) {
-            } else if (typeof end === "undefined") {
-                // range(end) equals to range(zero, end)
-                end = start
-                start = zero
-            }
-            if (typeof start !== type) throw new TypeError()
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
             if (!isInfinity(end) && typeof end !== type) throw new TypeError()
             if (isInfinity(start)) throw RangeError()
             const ifIncrease = end > start
             let inclusiveEnd = false
             /** @type {T} */ let step
-            if (typeof option === "undefined" || option === null)
-                step = undefined
+            if (typeof option === "undefined" || option === null) step = undefined
             else if (typeof option === "object") {
                 step = option.step
                 inclusiveEnd = Boolean(option.inclusive)
@@ -81,7 +62,6 @@
             const step = this.#step
             const type = this.#type
             const inclusiveEnd = this.#inclusiveEnd
-            if (type !== "bigint" && type !== "number") throw new TypeError()
             if (start === end) return CreateIterResultObject(undefined, true) // @ts-ignore
             /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
             /** @type {T} */ const one = type === "bigint" ? 1n : 1
@@ -89,8 +69,7 @@
                 return CreateIterResultObject(undefined, true)
             const ifIncrease = end > start
             const ifStepIncrease = step > zero
-            if (ifIncrease !== ifStepIncrease)
-                return CreateIterResultObject(undefined, true)
+            if (ifIncrease !== ifStepIncrease) return CreateIterResultObject(undefined, true)
             const currentCount = this.#currentCount // @ts-ignore
             const currentYieldingValue = start + step * currentCount
             if (currentYieldingValue === end) this.#hitsEnd = true // @ts-ignore
@@ -120,9 +99,7 @@
             return this.#inclusiveEnd
         }
     }
-    const IteratorPrototype = Object.getPrototypeOf(
-        Object.getPrototypeOf([][Symbol.iterator]())
-    )
+    const IteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
     Object.setPrototypeOf(RangeIterator.prototype, IteratorPrototype)
     Object.defineProperty(RangeIterator.prototype, Symbol.toStringTag, {
         writable: false,
@@ -133,17 +110,16 @@
     Object.defineProperty(Number, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) =>
-            new RangeIterator(start, end, option, "number"),
+        value: (start, end, option) => new RangeIterator(start, end, option, "number"),
     })
     Object.defineProperty(BigInt, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) =>
-            new RangeIterator(start, end, option, "bigint"),
+        value: (start, end, option) => new RangeIterator(start, end, option, "bigint"),
     })
     function isInfinity(x) {
         if (typeof x !== "number") return false
+        if (Number.isNaN(x)) return false
         if (Number.isFinite(x)) return false
         return true
     }
@@ -155,4 +131,4 @@
     function CreateIterResultObject(value, done) {
         return { value, done }
     }
-}
+})()
