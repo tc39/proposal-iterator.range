@@ -12,7 +12,9 @@ See the rendered spec at [here](https://tc39.es/proposal-Number.range/).
 
 [Compare with other languages](./compare.md) (Work in progress)
 
-[Playground](https://tc39.es/proposal-Number.range/playground.html).
+[Playground](https://tc39.es/proposal-Number.range/playground.html)
+
+[Polyfill](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-Number.range/branch/master/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-Number.range) is a step-to-step implementation of the proposal so you can verify if there is a bug in the specification by the debugger.
 
 ## Motivation
 
