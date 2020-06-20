@@ -59,7 +59,6 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 
 ##### Important semantics discussion
 
--   [#17: Iterator or Iterable](https://github.com/tc39/proposal-Number.range/issues/17)
 -   [#22: Class or plain object](https://github.com/tc39/proposal-Number.range/issues/22)
 
 ##### Others
@@ -69,14 +68,9 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 -   [#19: API design (move to NumberRangeIterator, BigIntRangeIterator or Iterator.range)](https://github.com/tc39/proposal-Number.range/issues/19)
 -   [#25: Possible options](https://github.com/tc39/proposal-Number.range/issues/25)
 
-#### Others
-
-If you interested in these topics, please open an issue!
-
--   Customizable behavior? Like `Number.range(0, 1000, (previous, index) => next)`
--   Drop support for decimal step to avoid the 0.30000000000000004 problem?
-
 # Examples
+
+See [tests](./__tests__/test.js) to learn about more usages.
 
 ```js
 for (const i of BigInt.range(0n, 43n)) console.log(i) // 0n to 42n
@@ -93,29 +87,6 @@ function* even() {
 ;[...Number.range(1, 100, 2)] // odd number from 1 to 99
 ```
 
-# Proposal
-
-Number.range( `start` , `to`, `step` )
-
-BigInt.range( `start` , `to`, `step` )
-
-### Feature flags (Wait for discussing)
-
--   `Number.range(to)` equals `Number.range(0, to)` (`isAcceptAlias` in polyfill)
--   -   \[false](default) No
--   -   \[true] Yes
-
 ### Signature
 
-```typescript
-interface NumberConstructor {
-    range(start: number, to: number, step?: number): Iterator<number>
-    // If accept Number.range(to)
-    range(to: number): Iterator<number>
-}
-interface BigIntConstructor {
-    range(start: BigInt, to: BigInt, step?: BigInt): Iterator<BigInt>
-    // If accept BigInt.range(to)
-    range(to: BigInt): Iterator<BigInt>
-}
-```
+See [global.d.ts](./global.d.ts)
