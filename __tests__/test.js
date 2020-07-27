@@ -149,6 +149,15 @@ test("Error: Infinity as start / step", () => {
     expect(() => Number.range(0, 10, { step: Infinity })).toThrowError()
 })
 
+test("Incompatible receiver", () => {
+    function* x() {}
+    const y = x()
+    const z = Number.range(0, 8)
+    expect(() => z.next.call(y)).toThrow()
+    expect(() => y.next.call(z)).toThrow()
+    y.next()
+})
+
 function that(x) {
     return [...x].map((x) => x + (typeof x === "number" ? "f" : "n")).join(", ")
 }

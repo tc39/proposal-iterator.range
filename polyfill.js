@@ -1,102 +1,97 @@
 // @ts-check
 /// <reference path="./global.d.ts" />
-// syntax target = es2020
-// This polyfill requires: globalThis, BigInt & private fields
+// This polyfill requires: globalThis, BigInt
 ;(() => {
-    /** @template {number | bigint} T */
-    class RangeIterator {
-        /**
-         * @param {T} start
-         * @param {T | number | undefined} end
-         * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
-         * @param {"number" | "bigint"} type
-         */
-        constructor(start, end, option, type) {
-            if (typeof start !== type) throw new TypeError() // @ts-ignore
-            /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
-            /** @type {T} */ const one = type === "bigint" ? 1n : 1
-            // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
-            if (!isInfinity(end) && typeof end !== type) throw new TypeError()
-            if (isInfinity(start)) throw RangeError()
-            const ifIncrease = end > start
-            let inclusiveEnd = false
-            /** @type {T} */ let step
-            if (typeof option === "undefined" || option === null) step = undefined
-            else if (typeof option === "object") {
-                step = option.step
-                inclusiveEnd = Boolean(option.inclusive)
-            } else if (typeof option === type) step = option
-            else throw new TypeError()
-            if (step === undefined || step === null) {
-                if (ifIncrease) step = one
-                // @ts-ignore
-                else step = -one
-            }
-            if (typeof step !== type) throw new TypeError()
-            if (isInfinity(step)) throw RangeError()
-            if (step === zero && start !== end) throw new RangeError()
-            this.#start = start
-            this.#end = end
-            this.#step = step
-            this.#type = type
-            this.#inclusiveEnd = inclusiveEnd
-            this.#currentCount = zero
-            return this
+    /**
+     * @template {number | bigint} T
+     * @param {T} start
+     * @param {T | number | undefined} end
+     * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
+     * @param {"number" | "bigint"} type
+     */
+    function CreateRangeIterator(start, end, option, type) {
+        if (typeof start !== type) throw new TypeError() // @ts-ignore
+        /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
+        /** @type {T} */ const one = type === "bigint" ? 1n : 1
+        // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
+        if (!isInfinity(end) && typeof end !== type) throw new TypeError()
+        if (isInfinity(start)) throw RangeError()
+        const ifIncrease = end > start
+        let inclusiveEnd = false
+        /** @type {T} */ let step
+        if (option === undefined || option === null) step = undefined
+        else if (typeof option === "object") {
+            step = option.step
+            inclusiveEnd = Boolean(option.inclusive)
+        } else if (typeof option === type) step = option
+        else throw new TypeError()
+        if (step === undefined || step === null) {
+            if (ifIncrease) step = one
+            // @ts-ignore
+            else step = -one
         }
-        //#region internal slots
-        /** @type {T} */ #start
-        /** @type {number | bigint} */ #end
-        /** @type {T} */ #step
-        /** @type {"number" | "bigint"} */ #type
-        /** @type {T} */ #currentCount
-        /** @type {boolean} */ #inclusiveEnd
-        /** @type {boolean} */ #hitsEnd
-        //#endregion
-        /**
-         * @returns {IteratorResult<T>}
-         */
-        next() {
-            if (this.#hitsEnd) return CreateIterResultObject(undefined, true)
-            const start = this.#start
-            const end = this.#end
-            const step = this.#step
-            const type = this.#type
-            const inclusiveEnd = this.#inclusiveEnd
-            if (start === end) return CreateIterResultObject(undefined, true) // @ts-ignore
-            /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
-            /** @type {T} */ const one = type === "bigint" ? 1n : 1
-            if (Number.isNaN(start) || Number.isNaN(end) || Number.isNaN(step))
-                return CreateIterResultObject(undefined, true)
-            const ifIncrease = end > start
-            const ifStepIncrease = step > zero
-            if (ifIncrease !== ifStepIncrease) return CreateIterResultObject(undefined, true)
-            const currentCount = this.#currentCount // @ts-ignore
-            const currentYieldingValue = start + step * currentCount
-            if (currentYieldingValue === end) this.#hitsEnd = true // @ts-ignore
-            const nextCount = currentCount + one
-            let endCondition = false
-            if (ifIncrease) {
-                if (inclusiveEnd) endCondition = currentYieldingValue > end
-                else endCondition = currentYieldingValue >= end
-            } else {
-                if (inclusiveEnd) endCondition = end > currentYieldingValue
-                else endCondition = end >= currentYieldingValue
+        if (typeof step !== type) throw new TypeError()
+        if (isInfinity(step)) throw RangeError()
+        if (step === zero && start !== end) throw new RangeError()
+        function* closure() {
+            if (start === end) return
+            if (isNaN(start)) return
+            if (isNaN(end)) return
+            if (isNaN(step)) return
+            let ifIncrease = end > start
+            let ifStepIncrease = step > zero
+            if (ifIncrease !== ifStepIncrease) return
+            let hitsEnd = false
+            let currentCount = zero
+            while (hitsEnd === false) {
+                // @ts-ignore
+                let currentYieldingValue = start + step * currentCount
+                if (currentYieldingValue === end) hitsEnd = true
+                currentCount++
+                let endCondition = false
+                if (ifIncrease) {
+                    if (inclusiveEnd) endCondition = currentYieldingValue > end
+                    else endCondition = currentYieldingValue >= end
+                } else {
+                    if (inclusiveEnd) endCondition = end > currentYieldingValue
+                    else endCondition = end >= currentYieldingValue
+                }
+                if (endCondition) return
+                yield currentYieldingValue
             }
-            if (endCondition) return CreateIterResultObject(undefined, true)
-            this.#currentCount = nextCount
-            return CreateIterResultObject(currentYieldingValue, false)
+            return undefined
+        }
+        const iterator = closure()
+        Object.setPrototypeOf(iterator, RangeIterator.prototype)
+        internalSlots.set(iterator, { start, end, step, inclusiveEnd })
+        return iterator
+    }
+    const generatorPrototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})()))
+    const origNext = generatorPrototype.next
+    generatorPrototype.next = new Proxy(origNext, {
+        apply(target, thisArg, args) {
+            if (internalSlots.has(thisArg)) {
+                throw new TypeError()
+            }
+            return Reflect.apply(target, thisArg, args)
+        },
+    })
+    class RangeIterator {
+        next() {
+            getInternalSlots(this)
+            return origNext.call(this)
         }
         get start() {
-            return this.#start
+            return getInternalSlots(this).start
         }
         get end() {
-            return this.#end
+            return getInternalSlots(this).end
         }
         get step() {
-            return this.#step
+            return getInternalSlots(this).step
         }
         get inclusive() {
-            return this.#inclusiveEnd
+            return getInternalSlots(this).inclusiveEnd
         }
     }
     const IteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
@@ -110,12 +105,12 @@
     Object.defineProperty(Number, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => new RangeIterator(start, end, option, "number"),
+        value: (start, end, option) => CreateRangeIterator(start, end, option, "number"),
     })
     Object.defineProperty(BigInt, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => new RangeIterator(start, end, option, "bigint"),
+        value: (start, end, option) => CreateRangeIterator(start, end, option, "bigint"),
     })
     function isInfinity(x) {
         if (typeof x !== "number") return false
@@ -123,12 +118,16 @@
         if (Number.isFinite(x)) return false
         return true
     }
+    function isNaN(x) {
+        if (typeof x !== "number") return false
+        return Number.isNaN(x)
+    }
     /**
-     * @returns {IteratorResult<any>}
-     * @param {any} value
-     * @param {boolean} done
+     * @type WeakMap<Generator, {start: any, end: any, inclusiveEnd: boolean, step: any}>
      */
-    function CreateIterResultObject(value, done) {
-        return { value, done }
+    const internalSlots = new WeakMap()
+    function getInternalSlots(obj) {
+        if (internalSlots.has(obj)) return internalSlots.get(obj)
+        throw new TypeError()
     }
 })()
