@@ -1,6 +1,6 @@
 // @ts-check
 /// <reference path="./global.d.ts" />
-// This polyfill requires: globalThis, BigInt
+// This polyfill requires: globalThis, BigInt, private fields
 ;(() => {
     const generatorPrototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})()))
     const origNext = generatorPrototype.next
