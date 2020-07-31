@@ -9,15 +9,6 @@ stage: 1
 contributors: "Jack Works"
 </pre>
 
-<emu-clause id="sec-variants">
-    <h1>Variants</h1>
-    <emu-note type="editor">
-    There are still some behavior not decided yet and waiting for discussion. Leave as variable in the spec.
-    <emu-alg>
-    1. _isAcceptAlias_: `range(end)` treated as `range(0, end)`
-    </emu-alg>
-    </emu-note>
-</emu-clause>
 <emu-clause id="sec-number">
     <h1>Number</h1>
     <emu-clause id="sec-number-range">
@@ -42,37 +33,62 @@ contributors: "Jack Works"
         <h1><dfn>CreateRangeIterator</dfn>(_start_, _end_, _option_, _type_)</h1>
         <emu-alg>
             1. If Type(_start_) is not _type_, throw a *TypeError* exception.
-            1. Assert: _type_ is *"number"* or
-            *"bigint"*
+            1. Assert: _type_ is *"number"* or *"bigint"*.
             1. If _type_ is *"bigint"*, let _zero_ be *0n*, else let _zero_ be *0*.
             1. If _type_ is *"bigint"*, let _one_ be *1n*, else let _one_ be *1*.
-            1. Variants
-                1. If variant _isAcceptAlias_ is *false*, do nothing.
-                1. Else, if Type(_end_) is *"undefined"*, let _end_ be _start_, then _start_ be _zero_
             1. Note: <emu-note type="editor">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</emu-note>
             1. If _end_ is not *+∞* or *-∞* and if Type(_end_) is not _type_, throw a *TypeError* exception.
             1. If _start_ is *+∞* or *-∞*, throws a *RangeError* exception.
-            1. Let _ifIncrease_ be `end > start`
-            1. Let _inclusiveEnd_ be *false*
-            1. Do the follow steps:
-                1. If _option_ is *undefined* or *null*, let _step_ = *undefined*
-                1. Else If Type(_option_) is *object*
-                    1. Let _step_ = Get(_option_, "step").
-                    1. Let _inclusiveEnd_ = ToBoolean(Get(_option_, "inclusive")).
-                1. Else if Type(_option_) is _type_, let _step_ = _option_.
-                1. Else, throw a *TypeError* exception.
+            1. Let _ifIncrease_ be end > start.
+            1. Let _inclusiveEnd_ be *false*.
+            <!-- Normalize options -->
+            1. If _option_ is *undefined* or *null*, let _step_ be *undefined*.
+            1. Else if Type(_option_) is *object*,
+                1. Let _step_ be Get(_option_, "step").
+                1. Let _inclusiveEnd_ be ToBoolean(Get(_option_, "inclusive")).
+            1. Else if Type(_option_) is _type_, let _step_ be _option_.
+            1. Else, throw a *TypeError* exception.
+            <!-- Normalize options end -->
             1. If _step_ is *undefined* or *null*,
-                1. If _ifIncrease_ is true, let _step_ = _one_
-                1. Else let _step_ = -_one_
+                1. If _ifIncrease_ is *true*, let _step_ be _one_.
+                1. Else let _step_ be -_one_.
             1. If Type(_step_) is not _type_, throws a *TypeError* exception.
             1. If _step_ is *+∞* or *-∞*, throws a *RangeError* exception.
-            1. If _step_ is _zero_ and _start_ !== _end_, throws an *RangeError* exception.
-            1. Let _iterator_ be ObjectCreate(%RangeIteratorPrototype%, « [[start]], [[end]], [[step]], [[type]], [[currentCount]] »).
+            1. If _step_ is _zero_ and _start_ is not equal to _end_, throws an *RangeError* exception.
+            1. Let _closure_ be a new Abstract Closure with no parameters that captures _start_, _end_, _step_, _type_, _inclusiveEnd_, _zero_, _one_ and performs the following steps when called:
+                <!-- Early return -->
+                1. If _start_ is _end_, return *undefined*.
+                1. If _start_ is *NaN*, return *undefined*.
+                1. If _end_ is *NaN*, return *undefined*.
+                1. If _step_ is *NaN*, return *undefined*.
+                <!-- Direction mismatch -->
+                1. Let _ifIncrease_ be _end_ > _start_.
+                1. Let _ifStepIncrease_ to be _step_ > _zero_.
+                1. If _ifIncrease_ is not equal to _ifStepIncrease_, return *undeﬁned*.
+                <!-- Yield numbers -->
+                1. Let _hitsEnd_ be *false*.
+                1. Let _currentCount_ be _zero_.
+                1. Note: Debug these step at https://tc39.es/proposal-Number.range/playground.html
+                1. Repeat, while _hitsEnd_ is *false*:
+                    1. Let _currentYieldingValue_ be _start_ + (_step_ \* _currentCount_).
+                    1. If _currentYieldingValue_ equal to _end_, Set _hitsEnd_ to *true*.
+                    1. Set _currentCount_ to _currentCount_ + _one_
+                    <!-- Prevent value overflow -->
+                    1. Let _endCondition_ be *false*.
+                    1. If _ifIncrease_ is *true*
+                        1. If _inclusiveEnd_ is *true*, set _endCondition_ be _currentYieldingValue_ > _end_
+                        1. Else set _endCondition_ be _currentYieldingValue_ >= _end_.
+                    1. Else
+                        1. If _inclusiveEnd_ is *true*, set _endCondition_ be _end_ > _currentYieldingValue_
+                        1. Else set _endCondition_ be _end_ >= _currentYieldingValue_.
+                    1. If _endCondition_ is *true*, return *undeﬁned*.
+                    1. Perform ? Yield(_currentYieldingValue_).
+                1. Return *undefined*.
+                <!-- Finish -->
+            1. Let _iterator_ be ! CreateIteratorFromClosure(_closure_, ~Range Iterator~, %RangeIteratorPrototype%, &laquo; start, end, step, inclusiveEnd &raquo;).
             1. Set _iterator_.[[start]] to _start_.
             1. Set _iterator_.[[end]] to _end_.
             1. Set _iterator_.[[step]] to _step_.
-            1. Set _iterator_.[[type]] to _type_.
-            1. Set _iterator_.[[currentCount]] to _zero_.
             1. Set _iterator_.[[inclusiveEnd]] to _inclusiveEnd_.
             1. Return _iterator_.
         </emu-alg>
@@ -86,49 +102,7 @@ contributors: "Jack Works"
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-next">
         <h1>%RangeIterator%.next()</h1>
         <emu-alg>
-            1.  Let _iterator_ be the *this* value.
-            1.  If Type(_iterator_) is not Object, throw a *TypeError* exception.
-            1.  If _iterator_ does not have all of the internal slots of a Range Iterator Instance, throw a *TypeError* exception.
-            1.  If _iterator_.[[hitsEnd]] is *true*, return CreateIterResultObject(*undefined*, true).
-            <!-- Deconstruct variables -->
-            1.  Let _start_ be _iterator_.[[start]].
-            1.  Let _end_ be _iterator_.[[end]].
-            1.  Let _step_ be _iterator_.[[step]].
-            1.  Let _type_ be _iterator_.[[type]].
-            1.  Let _inclusiveEnd_ bo _iterator_.[[inclusiveEnd]].
-            1.  Assert: _type_ is *"number"* or *"bigint"*
-            1. If _start_ == _end_, return CreateIterResultObject(*undefined*, *true*).
-            1.  If _type_ is *"bigint"*, let _zero_ be *0n*, else let _zero_ be *0*
-            1.  If _type_ is *"bigint"*, let _one_ be *1n*, else let _one_ be *1*
-            <!-- Early return -->
-            1.  If _start_ is *NaN*, return CreateIterResultObject(*undeﬁned*, *true*).
-            1.  If _end_ is *NaN*, return CreateIterResultObject(*undeﬁned*, *true*).
-            1.  If _step_ is *NaN*, return CreateIterResultObject(*undeﬁned*, *true*).
-            <!-- Direction mismatch -->
-            1.  Let _ifIncrease_ be `end > start`
-            1.  Let _ifStepIncrease_ to be `step > zero`
-            1. If _ifIncrease_ is not equal to _ifStepIncrease_, return CreateIterResultObject(*undeﬁned*, *true*).
-            <!-- Yield numbers -->
-            1. Note:
-        <emu-note type="editor">
-        In the playground it's fully implemented the spec step-by-step. https://tc39.es/proposal-Number.range/playground.html
-        </emu-note>
-            1.  Let _currentCount_ be _iterator_.[[currentCount]]
-            1. Let _currentYieldingValue_ to be _start_ + (_step_ \* _currentCount_)
-            1. If _currentYieldingValue_ equal to _end_, Set _iterator_.[[hitsEnd]] to *true*.
-            1. Let _nextCount_ to _currentCount_ + _one_
-            <!-- Prevent value overflow -->
-            1. Let _endCondition_ be false.
-            1. If _ifIncrease_ is *true*
-                1. If _inclusiveEnd_ is *true*, Let _endCondition_ be _currentYieldingValue_ > _end_
-                1. Else Let _endCondition_ be _currentYieldingValue_ >= _end_.
-            1. Else
-                1. If _inclusiveEnd_ is *true*, Let _endCondition_ be _end_ > _currentYieldingValue_
-                1. Else Let _endCondition_ be _end_ >= _currentYieldingValue_.
-            1. If _endCondition_ is *true*, return CreateIterResultObject(*undeﬁned*, *true*).
-            1. Set _iterator_.[[currentCount]] to _nextCount_
-            1. Return CreateIterResultObject(_currentYieldingValue_, *false*).
-            <!-- Finish -->
+            1. Return ? GeneratorResume(*this* value, *undefined*, ~Range Iterator~).
         </emu-alg>
     </emu-clause>
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-@@tostringtag">
@@ -142,8 +116,8 @@ contributors: "Jack Works"
         <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-start-getter">
             <h1>get %RangeIteratorPrototype%.start</h1>
             <emu-alg>
-                1. If *this* does not have a [[start]] internal slot, throw a *TypeError* exception.
-                1. return *this*.[[start]]
+                1. Perform ? RequireInternalSlot(*this*, [[start]]).
+                1. Return *this*.[[start]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
@@ -153,8 +127,8 @@ contributors: "Jack Works"
         <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to-getter">
             <h1>get %RangeIteratorPrototype%.end</h1>
             <emu-alg>
-                1. If *this* does not have a [[end]] internal slot, throw a *TypeError* exception.
-                1. return *this*.[[end]]
+                1. Perform ? RequireInternalSlot(*this*, [[end]]).
+                1. Return *this*.[[end]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
@@ -164,8 +138,8 @@ contributors: "Jack Works"
         <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to-getter">
             <h1>get %RangeIteratorPrototype%.inclusive</h1>
             <emu-alg>
-                1. If *this* does not have a [[inclusiveEnd]] internal slot, throw a *TypeError* exception.
-                1. return *this*.[[inclusiveEnd]]
+                1. Perform ? RequireInternalSlot(*this*, [[inclusive]]).
+                1. Return *this*.[[inclusiveEnd]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
@@ -175,8 +149,8 @@ contributors: "Jack Works"
         <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-step-getter">
             <h1>get %RangeIteratorPrototype%.step</h1>
             <emu-alg>
-                1. If *this* does not have a [[step]] internal slot, throw a *TypeError* exception.
-                1. return *this*.[[step]]
+                1. Perform ? RequireInternalSlot(*this*, [[step]]).
+                1. Return *this*.[[step]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
@@ -194,12 +168,7 @@ contributors: "Jack Works"
             <tr><td>[[start]]</td><td>The range starts start.</td><tr>
             <tr><td>[[end]]</td><td>The range ends to.</td><tr>
             <tr><td>[[step]]</td><td>The range step size.</td><tr>
-            <tr><td>[[type]]</td><td>Must be *"number"* or *"bigint"*.</td><tr>
             <tr><td>[[inclusiveEnd]]</td><td>Boolean. If the end is inclusive.</td><tr>
-            <tr><td>[[hitsEnd]]</td><td>Boolean. If the end is hitted.</td><tr>
-            <tr>
-            <td>[[currentCount]]</td>
-            <td>The `integer index` of the last yielded value this iterator. Must be type of number or bigint.</td>
             </tbody>
             </table>
         </emu-table>

@@ -1,16 +1,79 @@
 // @ts-check
 /// <reference path="./global.d.ts" />
-// syntax target = es2020
-// This polyfill requires: globalThis, BigInt & private fields
+// This polyfill requires: globalThis, BigInt, private fields
 ;(() => {
-    /** @template {number | bigint} T */
-    class RangeIterator {
+    const generatorPrototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})()))
+    const origNext = generatorPrototype.next
+    generatorPrototype.next = new Proxy(origNext, {
+        apply(target, thisArg, args) {
+            let isRange = false
+            try {
+                Object.getOwnPropertyDescriptor(RangeIterator.prototype, "start").get.call(thisArg)
+                isRange = true
+            } catch {}
+            if (isRange) throw new TypeError()
+            return Reflect.apply(target, thisArg, args)
+        },
+    })
+
+    /**
+     * @template {number | bigint} T
+     * @param {T} start
+     * @param {T | number | undefined} end
+     * @param {T} step
+     * @param {boolean} inclusiveEnd
+     * @param {T} zero
+     * @param {T} one
+     */
+    function* closure(start, end, step, inclusiveEnd, zero, one) {
+        if (start === end) return
+        if (isNaN(start)) return
+        if (isNaN(end)) return
+        if (isNaN(step)) return
+        let ifIncrease = end > start
+        let ifStepIncrease = step > zero
+        if (ifIncrease !== ifStepIncrease) return
+        let hitsEnd = false
+        let currentCount = zero
+        while (hitsEnd === false) {
+            // @ts-ignore
+            let currentYieldingValue = start + step * currentCount
+            if (currentYieldingValue === end) hitsEnd = true
+            // @ts-ignore
+            currentCount = currentCount + one
+            let endCondition = false
+            if (ifIncrease) {
+                if (inclusiveEnd) endCondition = currentYieldingValue > end
+                else endCondition = currentYieldingValue >= end
+            } else {
+                if (inclusiveEnd) endCondition = end > currentYieldingValue
+                else endCondition = end >= currentYieldingValue
+            }
+            if (endCondition) return
+            yield currentYieldingValue
+        }
+        return undefined
+    }
+    /**
+     * @param {Parameters<typeof closure>} args
+     */
+    function CreateRangeIteratorWithInternalSlot(...args) {
+        const g = closure(...args)
+        Reflect.setPrototypeOf(g, new.target.prototype)
+        return g
+    }
+    /**
+     * @template {number | bigint} T
+     */
+    // @ts-ignore
+    class RangeIterator extends CreateRangeIteratorWithInternalSlot {
         /**
          * @param {T} start
          * @param {T | number | undefined} end
          * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
          * @param {"number" | "bigint"} type
          */
+        // @ts-ignore
         constructor(start, end, option, type) {
             if (typeof start !== type) throw new TypeError() // @ts-ignore
             /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
@@ -21,7 +84,7 @@
             const ifIncrease = end > start
             let inclusiveEnd = false
             /** @type {T} */ let step
-            if (typeof option === "undefined" || option === null) step = undefined
+            if (option === undefined || option === null) step = undefined
             else if (typeof option === "object") {
                 step = option.step
                 inclusiveEnd = Boolean(option.inclusive)
@@ -35,57 +98,21 @@
             if (typeof step !== type) throw new TypeError()
             if (isInfinity(step)) throw RangeError()
             if (step === zero && start !== end) throw new RangeError()
+            const obj = super(start, end, step, inclusiveEnd, zero, one)
             this.#start = start
             this.#end = end
             this.#step = step
-            this.#type = type
-            this.#inclusiveEnd = inclusiveEnd
-            this.#currentCount = zero
-            return this
-        }
-        //#region internal slots
-        /** @type {T} */ #start
-        /** @type {number | bigint} */ #end
-        /** @type {T} */ #step
-        /** @type {"number" | "bigint"} */ #type
-        /** @type {T} */ #currentCount
-        /** @type {boolean} */ #inclusiveEnd
-        /** @type {boolean} */ #hitsEnd
-        //#endregion
-        /**
-         * @returns {IteratorResult<T>}
-         */
+            this.#inclusive = inclusiveEnd; 
+            // @ts-ignore
+            return obj }
         next() {
-            if (this.#hitsEnd) return CreateIterResultObject(undefined, true)
-            const start = this.#start
-            const end = this.#end
-            const step = this.#step
-            const type = this.#type
-            const inclusiveEnd = this.#inclusiveEnd
-            if (start === end) return CreateIterResultObject(undefined, true) // @ts-ignore
-            /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
-            /** @type {T} */ const one = type === "bigint" ? 1n : 1
-            if (Number.isNaN(start) || Number.isNaN(end) || Number.isNaN(step))
-                return CreateIterResultObject(undefined, true)
-            const ifIncrease = end > start
-            const ifStepIncrease = step > zero
-            if (ifIncrease !== ifStepIncrease) return CreateIterResultObject(undefined, true)
-            const currentCount = this.#currentCount // @ts-ignore
-            const currentYieldingValue = start + step * currentCount
-            if (currentYieldingValue === end) this.#hitsEnd = true // @ts-ignore
-            const nextCount = currentCount + one
-            let endCondition = false
-            if (ifIncrease) {
-                if (inclusiveEnd) endCondition = currentYieldingValue > end
-                else endCondition = currentYieldingValue >= end
-            } else {
-                if (inclusiveEnd) endCondition = end > currentYieldingValue
-                else endCondition = end >= currentYieldingValue
-            }
-            if (endCondition) return CreateIterResultObject(undefined, true)
-            this.#currentCount = nextCount
-            return CreateIterResultObject(currentYieldingValue, false)
+            this.#start + this.#start // brand check
+            return origNext.call(this)
         }
+        #start
+        #end
+        #step
+        #inclusive
         get start() {
             return this.#start
         }
@@ -96,7 +123,7 @@
             return this.#step
         }
         get inclusive() {
-            return this.#inclusiveEnd
+            return this.#inclusive
         }
     }
     const IteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
@@ -123,12 +150,8 @@
         if (Number.isFinite(x)) return false
         return true
     }
-    /**
-     * @returns {IteratorResult<any>}
-     * @param {any} value
-     * @param {boolean} done
-     */
-    function CreateIterResultObject(value, done) {
-        return { value, done }
+    function isNaN(x) {
+        if (typeof x !== "number") return false
+        return Number.isNaN(x)
     }
 })()
