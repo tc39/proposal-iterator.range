@@ -57,7 +57,6 @@ contributors: "Jack Works"
             1. If _step_ is _zero_ and _start_ is not equal to _end_, throws an *RangeError* exception.
             1. Let _closure_ be a new Abstract Closure with no parameters that captures _start_, _end_, _step_, _type_, _inclusiveEnd_, _zero_, _one_ and performs the following steps when called:
                 <!-- Early return -->
-                1. If _start_ is _end_, return *undefined*.
                 1. If _start_ is *NaN*, return *undefined*.
                 1. If _end_ is *NaN*, return *undefined*.
                 1. If _step_ is *NaN*, return *undefined*.

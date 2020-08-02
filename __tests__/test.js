@@ -158,6 +158,10 @@ test("Incompatible receiver", () => {
     y.next()
 })
 
+test("Inclusive on same start-end (issue #38)", () => {
+    expect(that(Number.range(0, 0, { inclusive: true }))).toMatchInlineSnapshot(`"0f"`)
+})
+
 function that(x) {
     return [...x].map((x) => x + (typeof x === "number" ? "f" : "n")).join(", ")
 }
