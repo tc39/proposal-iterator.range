@@ -26,7 +26,6 @@
      * @param {T} one
      */
     function* closure(start, end, step, inclusiveEnd, zero, one) {
-        if (start === end) return
         if (isNaN(start)) return
         if (isNaN(end)) return
         if (isNaN(step)) return
@@ -102,9 +101,10 @@
             this.#start = start
             this.#end = end
             this.#step = step
-            this.#inclusive = inclusiveEnd; 
+            this.#inclusive = inclusiveEnd
             // @ts-ignore
-            return obj }
+            return obj
+        }
         next() {
             this.#start + this.#start // brand check
             return origNext.call(this)
