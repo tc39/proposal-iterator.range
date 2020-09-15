@@ -57,10 +57,6 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 
 #### Discussions in Issue
 
-##### Important semantics discussion
-
--   [#22: Class or plain object](https://github.com/tc39/proposal-Number.range/issues/22)
-
 ##### Others
 
 -   [#13: Integration with Slice notation proposal](https://github.com/tc39/proposal-Number.range/issues/13)
@@ -77,6 +73,7 @@ for (const i of BigInt.range(0n, 43n)) console.log(i) // 0n to 42n
 
 // With iterator helper proposal
 Number.range(0, Infinity)
+    .values()
     .take(1000)
     .filter((x) => !(x % 3))
     .toArray()
@@ -89,7 +86,7 @@ function* even() {
 
 # Presentations
 
-- 2020 Apr [Notes](https://github.com/tc39/notes/blob/master/meetings/2020-03/april-1.md#numberrange-and-bigintrange-for-stage-1) [Slides](https://docs.google.com/presentation/d/1JD9SrOEtGEviPYJ3LQGKRqDHYeF-EIt7RHB92hKPWzo/)
+-   2020 Apr [Notes](https://github.com/tc39/notes/blob/master/meetings/2020-03/april-1.md#numberrange-and-bigintrange-for-stage-1) [Slides](https://docs.google.com/presentation/d/1JD9SrOEtGEviPYJ3LQGKRqDHYeF-EIt7RHB92hKPWzo/)
 
 ### Signature
 

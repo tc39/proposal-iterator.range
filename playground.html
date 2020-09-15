@@ -20,9 +20,7 @@ Open your console and "Number.range" & BigInt.range is available.
     display(() => [...Number.range(0, 5, { step: 1.5 })])
 </script>
 <script>
-    import(
-        "https://core-js.jackworks.workers.dev/proposals/iterator-helpers.js"
-    ).then(() => {
+    import("https://core-js.jackworks.workers.dev/proposals/iterator-helpers.js").then(() => {
         const tip = "Polyfill for iterator helper proposal is also loaded!"
         const x = document.createElement("div")
         document.body.appendChild(x)
@@ -30,6 +28,7 @@ Open your console and "Number.range" & BigInt.range is available.
         console.log(tip)
         display(() =>
             Number.range(1, 10)
+                .values()
                 .take(4)
                 .map((x) => x ** x)
                 .toArray()

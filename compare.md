@@ -46,7 +46,7 @@ Define:
 
 | Language           | Return type               | Iterator 1️⃣ / Iterable 🔢 | Lazy |
 | ------------------ | ------------------------- | ------------------------- | ---- |
-| This proposal      | Instantiation(`Iterator`) | 1️⃣ Iterator               | ✅   |
+| This proposal      | Instantiation(`Iterator`) | 🔢 Iterable               | ✅   |
 | Python             | Own                       | 🔢 Iterable               | ✅   |
 | Java               | Instantiation(`Stream`)   | ❌                        | ✅   |
 | Swift (`Range`)    | Own                       | 🔢 Iterable               | ✅   |

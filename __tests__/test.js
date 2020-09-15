@@ -40,17 +40,25 @@ test("Range to infinity", () => {
 })
 
 test("Use with Iterator helpers", () => {
-    expect(that(Number.range(0, 10).take(5))).toMatchInlineSnapshot(`"0f, 1f, 2f, 3f, 4f"`)
-    expect(that(Number.range(0, 10).map((x) => x * 2))).toMatchInlineSnapshot(
-        `"0f, 2f, 4f, 6f, 8f, 10f, 12f, 14f, 16f, 18f"`
-    )
-    expect(BigInt.range(0n, 10n).reduce((prev, curr) => prev + curr, 0n)).toMatchInlineSnapshot(`45n`)
+    expect(that(Number.range(0, 10).values().take(5))).toMatchInlineSnapshot(`"0f, 1f, 2f, 3f, 4f"`)
+    expect(
+        that(
+            Number.range(0, 10)
+                .values()
+                .map((x) => x * 2)
+        )
+    ).toMatchInlineSnapshot(`"0f, 2f, 4f, 6f, 8f, 10f, 12f, 14f, 16f, 18f"`)
+    expect(
+        BigInt.range(0n, 10n)
+            .values()
+            .reduce((prev, curr) => prev + curr, 0n)
+    ).toMatchInlineSnapshot(`45n`)
 })
 
-test("Be an iterator", () => {
+test("Be an iterable", () => {
     const x = Number.range(0, 10)
-    const iteratorPrototype = (function* () {})().__proto__.__proto__.__proto__
-    expect(x.__proto__.__proto__ === iteratorPrototype).toBeTruthy()
+    expect(that(x)).toMatchInlineSnapshot(`"0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f"`)
+    expect(that(x)).toMatchInlineSnapshot(`"0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f"`)
 })
 
 test("NaN", () => {
@@ -62,27 +70,29 @@ test("NaN", () => {
     expect(that(Number.range(0, 5, NaN))).toMatchInlineSnapshot(`""`)
 })
 
-test("{from, to, step} getter", () => {
+test("{from, to, step, type, isInclusiveEnd} getter", () => {
     {
         const a = Number.range(1, 3)
         expect(a.start).toMatchInlineSnapshot(`1`)
         expect(a.end).toMatchInlineSnapshot(`3`)
         expect(a.step).toMatchInlineSnapshot(`1`)
-        expect(a.inclusive).toMatchInlineSnapshot(`false`)
+        expect(a.isInclusiveEnd).toMatchInlineSnapshot(`false`)
+        expect(a.type).toMatchInlineSnapshot(`"number"`)
     }
+    expect(BigInt.range(1n, 3n).type).toMatchInlineSnapshot(`"bigint"`)
     {
         const a = Number.range(-1, -3, { inclusive: true })
         expect(a.start).toMatchInlineSnapshot(`-1`)
         expect(a.end).toMatchInlineSnapshot(`-3`)
         expect(a.step).toMatchInlineSnapshot(`-1`)
-        expect(a.inclusive).toMatchInlineSnapshot(`true`)
+        expect(a.isInclusiveEnd).toMatchInlineSnapshot(`true`)
     }
     {
         const a = Number.range(-1, -3, { step: 4, inclusive: function () {} })
         expect(a.start).toMatchInlineSnapshot(`-1`)
         expect(a.end).toMatchInlineSnapshot(`-3`)
         expect(a.step).toMatchInlineSnapshot(`4`)
-        expect(a.inclusive).toMatchInlineSnapshot(`true`)
+        expect(a.isInclusiveEnd).toMatchInlineSnapshot(`true`)
     }
     {
         const a = Number.range(0, 5)
@@ -152,10 +162,16 @@ test("Error: Infinity as start / step", () => {
 test("Incompatible receiver", () => {
     function* x() {}
     const y = x()
-    const z = Number.range(0, 8)
+    const z = Number.range(0, 8).values()
     expect(() => z.next.call(y)).toThrow()
     expect(() => y.next.call(z)).toThrow()
     y.next()
+})
+
+test("Constructor", () => {
+    const ctor = Number.range(0, 1).constructor
+    const r = new ctor("bigint", 0n, 1n)
+    expect(() => new ctor("what", 0, 1)).toThrow()
 })
 
 test("Inclusive on same start-end (issue #38)", () => {
