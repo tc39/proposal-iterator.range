@@ -1,5 +1,8 @@
 // @ts-check
 /// <reference path="./global.d.ts" />
+console.warn(`This is an experimental implementation of the range proposal (https://github.com/tc39/proposal-Number.range) of ECMAScript.
+It _will_ be changed if the specification has changed.
+It should only be used to collect developers feedback about the APIs.`)
 // This polyfill requires: globalThis, BigInt, private fields
 ;(() => {
     const generatorPrototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})()))
