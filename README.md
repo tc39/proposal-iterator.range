@@ -14,7 +14,11 @@ See the rendered spec at [here](https://tc39.es/proposal-Number.range/).
 
 [Playground](https://tc39.es/proposal-Number.range/playground.html)
 
-[Polyfill](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-Number.range/branch/master/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-Number.range) is a step-to-step implementation of the proposal so you can verify if there is a bug in the specification by the debugger.
+## Polyfill
+
+- A polyfill is available in the [core-js](https://github.com/zloirock/core-js) library. You can find it in the [ECMAScript proposals section](https://github.com/zloirock/core-js/#numberrange).
+
+- In the proposal repo is available a [a step-to-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-Number.range/branch/master/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-Number.range) so you can verify if there is a bug in the specification by the debugger.
 
 ## Motivation
 
