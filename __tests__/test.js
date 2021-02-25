@@ -68,21 +68,21 @@ test("{from, to, step} getter", () => {
         expect(a.start).toMatchInlineSnapshot(`1`)
         expect(a.end).toMatchInlineSnapshot(`3`)
         expect(a.step).toMatchInlineSnapshot(`1`)
-        expect(a.inclusive).toMatchInlineSnapshot(`false`)
+        expect(a.isInclusiveEnd).toMatchInlineSnapshot(`false`)
     }
     {
         const a = Number.range(-1, -3, { inclusive: true })
         expect(a.start).toMatchInlineSnapshot(`-1`)
         expect(a.end).toMatchInlineSnapshot(`-3`)
         expect(a.step).toMatchInlineSnapshot(`-1`)
-        expect(a.inclusive).toMatchInlineSnapshot(`true`)
+        expect(a.isInclusiveEnd).toMatchInlineSnapshot(`true`)
     }
     {
         const a = Number.range(-1, -3, { step: 4, inclusive: function () {} })
         expect(a.start).toMatchInlineSnapshot(`-1`)
         expect(a.end).toMatchInlineSnapshot(`-3`)
         expect(a.step).toMatchInlineSnapshot(`4`)
-        expect(a.inclusive).toMatchInlineSnapshot(`true`)
+        expect(a.isInclusiveEnd).toMatchInlineSnapshot(`true`)
     }
     {
         const a = Number.range(0, 5)

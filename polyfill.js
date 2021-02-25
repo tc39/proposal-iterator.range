@@ -11,7 +11,7 @@ It should only be used to collect developers feedback about the APIs.`)
         apply(target, thisArg, args) {
             let isRange = false
             try {
-                Object.getOwnPropertyDescriptor(RangeIterator.prototype, "start").get.call(thisArg)
+                Object.getOwnPropertyDescriptor(NumericRangeIterator.prototype, "start").get.call(thisArg)
                 isRange = true
             } catch {}
             if (isRange) throw new TypeError()
@@ -59,7 +59,7 @@ It should only be used to collect developers feedback about the APIs.`)
     /**
      * @param {Parameters<typeof closure>} args
      */
-    function CreateRangeIteratorWithInternalSlot(...args) {
+    function CreateNumericRangeIteratorWithInternalSlot(...args) {
         const g = closure(...args)
         Reflect.setPrototypeOf(g, new.target.prototype)
         return g
@@ -68,7 +68,7 @@ It should only be used to collect developers feedback about the APIs.`)
      * @template {number | bigint} T
      */
     // @ts-ignore
-    class RangeIterator extends CreateRangeIteratorWithInternalSlot {
+    class NumericRangeIterator extends CreateNumericRangeIteratorWithInternalSlot {
         /**
          * @param {T} start
          * @param {T | number | undefined} end
@@ -109,7 +109,7 @@ It should only be used to collect developers feedback about the APIs.`)
             return obj
         }
         next() {
-            this.#start + this.#start // brand check
+            this.#start // brand check
             return origNext.call(this)
         }
         #start
@@ -125,27 +125,27 @@ It should only be used to collect developers feedback about the APIs.`)
         get step() {
             return this.#step
         }
-        get inclusive() {
+        get isInclusiveEnd() {
             return this.#inclusive
         }
     }
     const IteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
-    Object.setPrototypeOf(RangeIterator.prototype, IteratorPrototype)
-    Object.defineProperty(RangeIterator.prototype, Symbol.toStringTag, {
+    Object.setPrototypeOf(NumericRangeIterator.prototype, IteratorPrototype)
+    Object.defineProperty(NumericRangeIterator.prototype, Symbol.toStringTag, {
         writable: false,
         enumerable: false,
         configurable: true,
-        value: "RangeIterator",
+        value: "NumericRangeIterator",
     })
     Object.defineProperty(Number, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => new RangeIterator(start, end, option, "number"),
+        value: (start, end, option) => new NumericRangeIterator(start, end, option, "number"),
     })
     Object.defineProperty(BigInt, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => new RangeIterator(start, end, option, "bigint"),
+        value: (start, end, option) => new NumericRangeIterator(start, end, option, "bigint"),
     })
     function isInfinity(x) {
         if (typeof x !== "number") return false
