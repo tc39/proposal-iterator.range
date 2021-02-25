@@ -4,36 +4,28 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css" />
 <script src="./spec.js"></script>
 <pre class="metadata">
-title: Proposal Number.range & BigInt.range
+title: Proposal Iterator.range.numeric
 stage: 1
 contributors: "Jack Works"
 </pre>
 
-<emu-clause id="sec-number">
-    <h1>Number</h1>
+<emu-clause id="sec-iteraotr">
+    <h1>Iterator</h1>
     <emu-clause id="sec-number-range">
-        <h1>Number.range(_start_, _end_, _option_)</h1>
+        <h1>Iterator.range.numeric(_start_, _end_, _option_)</h1>
         <emu-alg>
-            1. Return ? CreateRangeIterator(_start_, _end_, _option_, *"number"*).
-        </emu-alg>
-    </emu-clause>
-</emu-clause>
-<emu-clause id="sec-bigint">
-    <h1>BigInt</h1>
-    <emu-clause id="sec-bigint-range">
-        <h1>BigInt.range(_start_, _end_, _option_)</h1>
-        <emu-alg>
-            1. Return ? CreateRangeIterator(_start_, _end_, _option_, *"bigint"*).
+            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_).
         </emu-alg>
     </emu-clause>
 </emu-clause>
 <emu-clause id="sec-algor">
     <h1>Algorithms</h1>
     <emu-clause id="sec-algor-0">
-        <h1><dfn>CreateRangeIterator</dfn>(_start_, _end_, _option_, _type_)</h1>
+        <h1><dfn>CreateNumericRangeIterator</dfn>(_start_, _end_, _option_)</h1>
         <emu-alg>
             1. If Type(_start_) is not _type_, throw a *TypeError* exception.
-            1. Assert: _type_ is *"number"* or *"bigint"*.
+            1. Let _type_ be TypeOf(_start_).
+            1. If _type_ is not *"number"* or *"bigint"*, throw a *TypeError* exception.
             1. If _type_ is *"bigint"*, let _zero_ be *0n*, else let _zero_ be *0*.
             1. If _type_ is *"bigint"*, let _one_ be *1n*, else let _one_ be *1*.
             1. Note: <emu-note type="editor">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</emu-note>

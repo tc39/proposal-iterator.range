@@ -16,9 +16,9 @@ See the rendered spec at [here](https://tc39.es/proposal-Number.range/).
 
 ## Polyfill
 
-- A polyfill is available in the [core-js](https://github.com/zloirock/core-js) library. You can find it in the [ECMAScript proposals section](https://github.com/zloirock/core-js/#numberrange).
+-   A polyfill is available in the [core-js](https://github.com/zloirock/core-js) library. You can find it in the [ECMAScript proposals section](https://github.com/zloirock/core-js/#numberrange).
 
-- In the proposal repo is available a [a step-to-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-Number.range/branch/master/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-Number.range) so you can verify if there is a bug in the specification by the debugger.
+-   In the proposal repo is available a [a step-to-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-Number.range/branch/master/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-Number.range) so you can verify if there is a bug in the specification by the debugger.
 
 ## Motivation
 
@@ -93,7 +93,7 @@ function* even() {
 
 # Presentations
 
-- 2020 Apr [Notes](https://github.com/tc39/notes/blob/master/meetings/2020-03/april-1.md#numberrange-and-bigintrange-for-stage-1) [Slides](https://docs.google.com/presentation/d/1JD9SrOEtGEviPYJ3LQGKRqDHYeF-EIt7RHB92hKPWzo/)
+-   2020 Apr [Notes](https://github.com/tc39/notes/blob/master/meetings/2020-03/april-1.md#numberrange-and-bigintrange-for-stage-1) [Slides](https://docs.google.com/presentation/d/1JD9SrOEtGEviPYJ3LQGKRqDHYeF-EIt7RHB92hKPWzo/)
 
 ### Signature
 
