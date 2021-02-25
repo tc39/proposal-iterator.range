@@ -29,7 +29,7 @@ contributors: "Jack Works"
 </emu-clause>
 <emu-clause id="sec-algor">
     <h1>Algorithms</h1>
-    <emu-clause id="sec-algor">
+    <emu-clause id="sec-algor-0">
         <h1><dfn>CreateRangeIterator</dfn>(_start_, _end_, _option_, _type_)</h1>
         <emu-alg>
             1. If Type(_start_) is not _type_, throw a *TypeError* exception.
@@ -123,7 +123,7 @@ contributors: "Jack Works"
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-end">
         <h1>%RangeIteratorPrototype%.end</h1>
         <p>%RangeIteratorPrototype%.end is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
-        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to-getter">
+        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-end-getter">
             <h1>get %RangeIteratorPrototype%.end</h1>
             <emu-alg>
                 1. Perform ? RequireInternalSlot(*this*, [[end]]).
@@ -134,7 +134,7 @@ contributors: "Jack Works"
     <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-inclusive">
         <h1>%RangeIteratorPrototype%.inclusive</h1>
         <p>%RangeIteratorPrototype%.inclusive is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
-        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-to-getter">
+        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-inclusive-getter">
             <h1>get %RangeIteratorPrototype%.inclusive</h1>
             <emu-alg>
                 1. Perform ? RequireInternalSlot(*this*, [[inclusive]]).
