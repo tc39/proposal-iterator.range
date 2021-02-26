@@ -158,6 +158,16 @@ test("Incompatible receiver", () => {
     y.next()
 })
 
+test("Argument 0 as options", () => {
+    const a = Number.range(0, 2)
+    const b = Number.range(a)
+    expect(a).toEqual(b)
+})
+
+test("Invalid 0 args", () => {
+    expect(() => Number.range({})).toThrow()
+})
+
 test("Inclusive on same start-end (issue #38)", () => {
     expect(that(Number.range(0, 0, { inclusive: true }))).toMatchInlineSnapshot(`"0f"`)
 })

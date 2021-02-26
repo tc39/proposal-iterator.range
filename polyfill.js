@@ -1,7 +1,7 @@
 // @ts-check
 /// <reference path="./global.d.ts" />
-console.warn(`This is an experimental implementation of the range proposal (https://github.com/tc39/proposal-Number.range) of ECMAScript.
-It _will_ be changed if the specification has changed.
+console.warn(`This is a step-to-step implementation of the range proposal (https://github.com/tc39/proposal-Number.range) of ECMAScript.
+It _will_ change with the proposal has changed.
 It should only be used to collect developers feedback about the APIs.`)
 // This polyfill requires: globalThis, BigInt, private fields
 ;(() => {
@@ -70,35 +70,56 @@ It should only be used to collect developers feedback about the APIs.`)
     // @ts-ignore
     class NumericRangeIterator extends CreateNumericRangeIteratorWithInternalSlot {
         /**
-         * @param {T} start
-         * @param {T | number | undefined} end
-         * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
+         * @param {T | { step?: T, inclusive?: boolean, start: T, end: T | number }} arg0
+         * @param {T | number | undefined} arg1
+         * @param {T | undefined | null | { step?: T, inclusive?: boolean }} arg2
          * @param {"number" | "bigint"} type
          */
         // @ts-ignore
-        constructor(start, end, option, type) {
-            if (typeof start !== type) throw new TypeError() // @ts-ignore
+        constructor(arg0, arg1, arg2, type) {
+            // @ts-ignore
             /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
             /** @type {T} */ const one = type === "bigint" ? 1n : 1
+            /** @type {T | { step?: T, inclusive?: boolean }} */ let option
+            /** @type {T} */ let start
+            /** @type {T | number} */ let end
+            /** @type {T | undefined | null} */ let step
+            /** @type {boolean} */ let inclusiveEnd = false
+            if (typeof arg0 === "object" && arg0 !== null) {
+                start = arg0.start
+                end = arg0.end
+                option = arg0
+            } else if (typeof arg0 === type) {
+                // @ts-ignore
+                start = arg0
+                end = arg1
+                option = arg2
+            } else throw new TypeError()
+
+            if (option === undefined || option === null) {
+            } else if (typeof option === "object") {
+                step = option.step
+                const rawInclusiveEnd = option.inclusive
+                if (rawInclusiveEnd === null || rawInclusiveEnd === undefined) {
+                } else inclusiveEnd = Boolean(rawInclusiveEnd)
+            } else if (typeof option === type) {
+                // @ts-ignore
+                step = option
+            } else {
+                if (option !== undefined && option !== null) throw new TypeError()
+            }
+            // Normalize ends
+            if (typeof start !== type) throw new TypeError()
+            if (isInfinity(start)) throw RangeError()
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
             if (!isInfinity(end) && typeof end !== type) throw new TypeError()
-            if (isInfinity(start)) throw RangeError()
+            if (isInfinity(step)) throw RangeError()
             const ifIncrease = end > start
-            let inclusiveEnd = false
-            /** @type {T} */ let step
-            if (option === undefined || option === null) step = undefined
-            else if (typeof option === "object") {
-                step = option.step
-                inclusiveEnd = Boolean(option.inclusive)
-            } else if (typeof option === type) step = option
-            else throw new TypeError()
             if (step === undefined || step === null) {
-                if (ifIncrease) step = one
                 // @ts-ignore
-                else step = -one
+                step = ifIncrease ? one : -one
             }
             if (typeof step !== type) throw new TypeError()
-            if (isInfinity(step)) throw RangeError()
             if (step === zero && start !== end) throw new RangeError()
             const obj = super(start, end, step, inclusiveEnd, zero, one)
             this.#start = start
