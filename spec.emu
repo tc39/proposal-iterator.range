@@ -14,7 +14,7 @@ contributors: "Jack Works"
     <emu-clause id="sec-number-range">
         <h1>Number.range(_start_, _end_, _option_)</h1>
         <emu-alg>
-            1. Return ? CreateRangeIterator(_start_, _end_, _option_, *"number"*).
+            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, *"number"*).
         </emu-alg>
     </emu-clause>
 </emu-clause>
@@ -23,14 +23,14 @@ contributors: "Jack Works"
     <emu-clause id="sec-bigint-range">
         <h1>BigInt.range(_start_, _end_, _option_)</h1>
         <emu-alg>
-            1. Return ? CreateRangeIterator(_start_, _end_, _option_, *"bigint"*).
+            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, *"bigint"*).
         </emu-alg>
     </emu-clause>
 </emu-clause>
 <emu-clause id="sec-algor">
     <h1>Algorithms</h1>
-    <emu-clause id="sec-algor-0">
-        <h1><dfn>CreateRangeIterator</dfn>(_start_, _end_, _option_, _type_)</h1>
+    <emu-clause id="sec-create-numeric-range-iterator">
+        <h1><dfn>CreateNumericRangeIterator</dfn>(_start_, _end_, _option_, _type_)</h1>
         <emu-alg>
             1. If Type(_start_) is not _type_, throw a *TypeError* exception.
             1. Assert: _type_ is *"number"* or *"bigint"*.
@@ -84,7 +84,7 @@ contributors: "Jack Works"
                     1. Perform ? Yield(_currentYieldingValue_).
                 1. Return *undefined*.
                 <!-- Finish -->
-            1. Let _iterator_ be ! CreateIteratorFromClosure(_closure_, ~Range Iterator~, %RangeIteratorPrototype%, &laquo; start, end, step, inclusiveEnd &raquo;).
+            1. Let _iterator_ be ! CreateIteratorFromClosure(_closure_, ~Numberic Range Iterator~, %NumericRangeIteratorPrototype%, &laquo; start, end, step, inclusiveEnd &raquo;).
             1. Set _iterator_.[[start]] to _start_.
             1. Set _iterator_.[[end]] to _end_.
             1. Set _iterator_.[[step]] to _step_.
@@ -94,68 +94,68 @@ contributors: "Jack Works"
     </emu-clause>
 </emu-clause>
 
-<emu-clause id="sec-properties-of-the-rangeiterator-prototype-object">
-    <h1>Properties of the RangeIterator Prototype Object</h1>
-    <p>The RangeIterator prototype object is the intrinsic object <dfn>%RangeIteratorPrototype%</dfn>.</p>
+<emu-clause id="sec-properties-of-the-numbericrangeiterator-prototype-object">
+    <h1>Properties of the NumericRangeIterator Prototype Object</h1>
+    <p>The NumericRangeIterator prototype object is the intrinsic object <dfn>%NumericRangeIteratorPrototype%</dfn>.</p>
     <p>The value has a [[Prototype]] internal slot whose value is the intrinsic object %IteratorPrototype%.</p>
-    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-next">
-        <h1>%RangeIterator%.next()</h1>
+    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-next">
+        <h1>%NumericRangeIterator%.next()</h1>
         <emu-alg>
-            1. Return ? GeneratorResume(*this* value, *undefined*, ~Range Iterator~).
+            1. Return ? GeneratorResume(*this* value, *undefined*, ~Numeric Range Iterator~).
         </emu-alg>
     </emu-clause>
-    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-@@tostringtag">
-        <h1>%RangeIteratorPrototype%.[@@toStringTag]</h1>
-        <p>The initial value of the @@toStringTag property is the String value `"RangeIterator"`.</p>
+    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag">
+        <h1>%NumericRangeIteratorPrototype%.[@@toStringTag]</h1>
+        <p>The initial value of the @@toStringTag property is the String value `"NumericRangeIterator"`.</p>
         <p>This property has the attributes { [[Writable]]: *false*, [[Enumerable]]: *false*, [[Configurable]]: *true* }.</p>
     </emu-clause>
-    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-start">
-        <h1>%RangeIteratorPrototype%.start</h1>
-        <p>%RangeIteratorPrototype%.start is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
-        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-start-getter">
-            <h1>get %RangeIteratorPrototype%.start</h1>
+    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-start">
+        <h1>%NumericRangeIteratorPrototype%.start</h1>
+        <p>%NumericRangeIteratorPrototype%.start is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-start-getter">
+            <h1>get %NumericRangeIteratorPrototype%.start</h1>
             <emu-alg>
                 1. Perform ? RequireInternalSlot(*this*, [[start]]).
                 1. Return *this*.[[start]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
-    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-end">
-        <h1>%RangeIteratorPrototype%.end</h1>
-        <p>%RangeIteratorPrototype%.end is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
-        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-end-getter">
-            <h1>get %RangeIteratorPrototype%.end</h1>
+    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-end">
+        <h1>%NumericRangeIteratorPrototype%.end</h1>
+        <p>%NumericRangeIteratorPrototype%.end is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-end-getter">
+            <h1>get %NumericRangeIteratorPrototype%.end</h1>
             <emu-alg>
                 1. Perform ? RequireInternalSlot(*this*, [[end]]).
                 1. Return *this*.[[end]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
-    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-inclusive">
-        <h1>%RangeIteratorPrototype%.inclusive</h1>
-        <p>%RangeIteratorPrototype%.inclusive is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
-        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-inclusive-getter">
-            <h1>get %RangeIteratorPrototype%.inclusive</h1>
+    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive">
+        <h1>%NumericRangeIteratorPrototype%.inclusive</h1>
+        <p>%NumericRangeIteratorPrototype%.inclusive is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive-getter">
+            <h1>get %NumericRangeIteratorPrototype%.isEnclusiveEnd</h1>
             <emu-alg>
-                1. Perform ? RequireInternalSlot(*this*, [[inclusive]]).
+                1. Perform ? RequireInternalSlot(*this*, [[inclusiveEnd]]).
                 1. Return *this*.[[inclusiveEnd]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
-    <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-step">
-        <h1>%RangeIteratorPrototype%.step</h1>
-        <p>%RangeIteratorPrototype%.step is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
-        <emu-clause id="sec-properties-of-the-rangeiterator-prototype-object-step-getter">
-            <h1>get %RangeIteratorPrototype%.step</h1>
+    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-step">
+        <h1>%NumericRangeIteratorPrototype%.step</h1>
+        <p>%NumericRangeIteratorPrototype%.step is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-step-getter">
+            <h1>get %NumericRangeIteratorPrototype%.step</h1>
             <emu-alg>
                 1. Perform ? RequireInternalSlot(*this*, [[step]]).
                 1. Return *this*.[[step]].
             </emu-alg>
         </emu-clause>
     </emu-clause>
-    <emu-clause id="sec-rangeiterator-slots">
+    <emu-clause id="sec-numericrangeiterator-slots">
         <h1>Internal slots</h1>
-        <emu-table id="sec-rangeiterator-internal-slots" caption="Internal slots">
+        <emu-table id="sec-numericrangeiterator-internal-slots" caption="Internal slots">
             <table>
             <thead>
             <tr>
