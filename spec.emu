@@ -131,10 +131,10 @@ contributors: "Jack Works"
             </emu-alg>
         </emu-clause>
     </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-isinclusiveend">
-        <h1>%NumericRangeIteratorPrototype%.isInclusiveEnd</h1>
-        <p>%NumericRangeIteratorPrototype%.isInclusiveEnd is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-isinclusiveend-getter">
+    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive">
+        <h1>%NumericRangeIteratorPrototype%.inclusive</h1>
+        <p>%NumericRangeIteratorPrototype%.inclusive is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows: </p>
+        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive-getter">
             <h1>get %NumericRangeIteratorPrototype%.isEnclusiveEnd</h1>
             <emu-alg>
                 1. Perform ? RequireInternalSlot(*this*, [[inclusiveEnd]]).

@@ -125,7 +125,7 @@ It should only be used to collect developers feedback about the APIs.`)
         get step() {
             return this.#step
         }
-        get isInclusiveEnd() {
+        get inclusive() {
             return this.#inclusive
         }
     }
