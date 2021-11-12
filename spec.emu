@@ -38,7 +38,7 @@ contributors: "Jack Works"
             1. If _type_ is *"bigint"*, let _one_ be *1n*, else let _one_ be *1*.
             1. Note: <emu-note type="editor">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</emu-note>
             1. If _end_ is not *+∞* or *-∞* and if Type(_end_) is not _type_, throw a *TypeError* exception.
-            1. If _start_ is *+∞* or *-∞*, throws a *RangeError* exception.
+            1. If _start_ is *+∞* or *-∞*, throw a *RangeError* exception.
             1. Let _ifIncrease_ be end > start.
             1. Let _inclusiveEnd_ be *false*.
             <!-- Normalize options -->
@@ -52,9 +52,9 @@ contributors: "Jack Works"
             1. If _step_ is *undefined* or *null*,
                 1. If _ifIncrease_ is *true*, let _step_ be _one_.
                 1. Else let _step_ be -_one_.
-            1. If Type(_step_) is not _type_, throws a *TypeError* exception.
-            1. If _step_ is *+∞* or *-∞*, throws a *RangeError* exception.
-            1. If _step_ is _zero_ and _start_ is not equal to _end_, throws an *RangeError* exception.
+            1. If Type(_step_) is not _type_, throw a *TypeError* exception.
+            1. If _step_ is *+∞* or *-∞*, throw a *RangeError* exception.
+            1. If _step_ is _zero_ and _start_ is not equal to _end_, throw a *RangeError* exception.
             1. Let _closure_ be a new Abstract Closure with no parameters that captures _start_, _end_, _step_, _type_, _inclusiveEnd_, _zero_, _one_ and performs the following steps when called:
                 <!-- Early return -->
                 1. If _start_ is *NaN*, return *undefined*.
