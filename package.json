@@ -1,23 +1,23 @@
 {
     "private": true,
-    "name": "template-for-proposals",
-    "description": "A repository template for ECMAScript proposals.",
+    "name": "range",
+    "description": "A repository for ECMAScript range proposal.",
     "scripts": {
         "start": "ecmarkup spec.emu index.html --watch",
         "build": "ecmarkup spec.emu index.html",
         "test": "jest --coverage --coverage-provider=v8"
     },
-    "homepage": "https://github.com/tc39/template-for-proposals#readme",
+    "homepage": "https://github.com/tc39/proposal-Number.range#readme",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/tc39/template-for-proposals.git"
+        "url": "git+https://github.com/tc39/proposal-Number.range.git"
     },
     "license": "MIT",
     "devDependencies": {
-        "@types/jest": "^26.0.4",
-        "core-js": "^3.6.5",
-        "ecmarkup": "^6.1.0",
-        "jest": "^26.1.0",
-        "prettier": "^2.0.5"
+        "@types/jest": "^27.0.2",
+        "core-js": "^3.19.1",
+        "ecmarkup": "^9.6.1",
+        "jest": "^27.3.1",
+        "prettier": "^2.4.1"
     }
 }
