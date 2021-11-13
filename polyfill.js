@@ -5,6 +5,10 @@ It _will_ be changed if the specification has changed.
 It should only be used to collect developers feedback about the APIs.`)
 // This polyfill requires: globalThis, BigInt, private fields
 ;(() => {
+    const SpecValue = {
+        BigIntRange: Symbol(),
+        NumberRange: Symbol(),
+    }
     const generatorPrototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})()))
     const origNext = generatorPrototype.next
     generatorPrototype.next = new Proxy(origNext, {
@@ -73,15 +77,16 @@ It should only be used to collect developers feedback about the APIs.`)
          * @param {T} start
          * @param {T | number | undefined} end
          * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
-         * @param {"number" | "bigint"} type
+         * @param {(typeof SpecValue)[keyof typeof SpecValue]} type
          */
         // @ts-ignore
         constructor(start, end, option, type) {
-            if (typeof start !== type) throw new TypeError() // @ts-ignore
-            /** @type {T} */ const zero = type === "bigint" ? 0n : 0 // @ts-ignore
-            /** @type {T} */ const one = type === "bigint" ? 1n : 1
+            const primitiveType = type === SpecValue.NumberRange ? "number" : "bigint"
+            if (typeof start !== primitiveType) throw new TypeError() // @ts-ignore
+            /** @type {T} */ const zero = type === SpecValue.BigIntRange ? 0n : 0 // @ts-ignore
+            /** @type {T} */ const one = type === SpecValue.BigIntRange ? 1n : 1
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
-            if (!isInfinity(end) && typeof end !== type) throw new TypeError()
+            if (!isInfinity(end) && typeof end !== primitiveType) throw new TypeError()
             if (isInfinity(start)) throw RangeError()
             const ifIncrease = end > start
             let inclusiveEnd = false
@@ -90,14 +95,14 @@ It should only be used to collect developers feedback about the APIs.`)
             else if (typeof option === "object") {
                 step = option.step
                 inclusiveEnd = Boolean(option.inclusive)
-            } else if (typeof option === type) step = option
+            } else if (typeof option === primitiveType) step = option
             else throw new TypeError()
             if (step === undefined || step === null) {
                 if (ifIncrease) step = one
                 // @ts-ignore
                 else step = -one
             }
-            if (typeof step !== type) throw new TypeError()
+            if (typeof step !== primitiveType) throw new TypeError()
             if (isInfinity(step)) throw RangeError()
             if (step === zero && start !== end) throw new RangeError()
             const obj = super(start, end, step, inclusiveEnd, zero, one)
@@ -140,12 +145,12 @@ It should only be used to collect developers feedback about the APIs.`)
     Object.defineProperty(Number, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => new NumericRangeIterator(start, end, option, "number"),
+        value: (start, end, option) => new NumericRangeIterator(start, end, option, SpecValue.NumberRange),
     })
     Object.defineProperty(BigInt, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => new NumericRangeIterator(start, end, option, "bigint"),
+        value: (start, end, option) => new NumericRangeIterator(start, end, option, SpecValue.BigIntRange),
     })
     function isInfinity(x) {
         if (typeof x !== "number") return false
