@@ -14,7 +14,7 @@ contributors: "Jack Works"
     <emu-clause id="sec-number-range">
         <h1>Number.range(_start_, _end_, _option_)</h1>
         <emu-alg>
-            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, *"number"*).
+            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, ~number-range~).
         </emu-alg>
     </emu-clause>
 </emu-clause>
@@ -23,7 +23,7 @@ contributors: "Jack Works"
     <emu-clause id="sec-bigint-range">
         <h1>BigInt.range(_start_, _end_, _option_)</h1>
         <emu-alg>
-            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, *"bigint"*).
+            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, ~bigint-range~).
         </emu-alg>
     </emu-clause>
 </emu-clause>
@@ -33,9 +33,9 @@ contributors: "Jack Works"
         <h1><dfn>CreateNumericRangeIterator</dfn>(_start_, _end_, _option_, _type_)</h1>
         <emu-alg>
             1. If Type(_start_) is not _type_, throw a *TypeError* exception.
-            1. Assert: _type_ is *"number"* or *"bigint"*.
-            1. If _type_ is *"bigint"*, let _zero_ be *0n*, else let _zero_ be *0*.
-            1. If _type_ is *"bigint"*, let _one_ be *1n*, else let _one_ be *1*.
+            1. Assert: _type_ is ~number-range~ or ~bigint-range~.
+            1. If _type_ is ~bigint-range~, let _zero_ be *0n*, else let _zero_ be *0*.
+            1. If _type_ is ~bigint-range~, let _one_ be *1n*, else let _one_ be *1*.
             1. Note: <emu-note type="editor">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</emu-note>
             1. If _end_ is not *+∞* or *-∞* and if Type(_end_) is not _type_, throw a *TypeError* exception.
             1. If _start_ is *+∞* or *-∞*, throw a *RangeError* exception.
