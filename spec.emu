@@ -43,8 +43,8 @@ contributors: "Jack Works"
             1. Let _inclusiveEnd_ be *false*.
             1. If _option_ is *undefined* or *null*, let _step_ be *undefined*.
             1. Else if Type(_option_) is *object*, then
-                1. Let _step_ be Get(_option_, "step").
-                1. Let _inclusiveEnd_ be ToBoolean(Get(_option_, "inclusive")).
+                1. Let _step_ be ? Get(_option_, "step").
+                1. Let _inclusiveEnd_ be ToBoolean(? Get(_option_, "inclusive")).
             1. Else if Type(_option_) is _primitiveType_, let _step_ be _option_.
             1. Else, throw a *TypeError* exception.
             1. If _step_ is *undefined* or *null*, then
@@ -78,7 +78,7 @@ contributors: "Jack Works"
                     1. If _endCondition_ is *true*, return *undeﬁned*.
                     1. Perform ? Yield(_currentYieldingValue_).
                 1. Return *undefined*.
-            1. Let _iterator_ be ! CreateIteratorFromClosure(_closure_, ~Numberic Range Iterator~, %NumericRangeIteratorPrototype%, &laquo; start, end, step, inclusiveEnd &raquo;).
+            1. Let _iterator_ be CreateIteratorFromClosure(_closure_, ~Numberic Range Iterator~, %NumericRangeIteratorPrototype%, &laquo; start, end, step, inclusiveEnd &raquo;).
             1. Set _iterator_.[[start]] to _start_.
             1. Set _iterator_.[[end]] to _end_.
             1. Set _iterator_.[[step]] to _step_.
