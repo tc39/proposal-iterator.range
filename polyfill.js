@@ -40,11 +40,9 @@ It should only be used to collect developers feedback about the APIs.`)
         if (ifIncrease !== ifStepIncrease) return
         let hitsEnd = false
         let currentCount = zero
-        while (hitsEnd === false) {
-            // @ts-ignore
+        while (hitsEnd === false) { // @ts-ignore
             let currentYieldingValue = start + step * currentCount
-            if (currentYieldingValue === end) hitsEnd = true
-            // @ts-ignore
+            if (currentYieldingValue === end) hitsEnd = true // @ts-ignore
             currentCount = currentCount + one
             let endCondition = false
             if (ifIncrease) {
@@ -69,43 +67,55 @@ It should only be used to collect developers feedback about the APIs.`)
     }
     /**
      * @template {number | bigint} T
-     */
-    // @ts-ignore
+     */ // @ts-ignore
     class NumericRangeIterator extends CreateNumericRangeIteratorWithInternalSlot {
         /**
          * @param {T} start
          * @param {T | number | undefined} end
          * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
          * @param {(typeof SpecValue)[keyof typeof SpecValue]} type
-         */
-        // @ts-ignore
+         */ // @ts-ignore
         constructor(start, end, option, type) {
-            const primitiveType = type === SpecValue.NumberRange ? "number" : "bigint" // @ts-ignore
-            /** @type {T} */ const zero = type === SpecValue.BigIntRange ? 0n : 0 // @ts-ignore
-            /** @type {T} */ const one = type === SpecValue.BigIntRange ? 1n : 1
-            // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
-            if (!isInfinity(end) && typeof end !== primitiveType) throw new TypeError()
+            /** @type {T} */ let zero
+            /** @type {T} */ let one
+            if (type === SpecValue.NumberRange) {
+                // Assert: start is number
+                if (typeof end !== "number") throw new TypeError() // @ts-ignore
+                zero = 0 // @ts-ignore
+                one = 1
+            } else {
+                // Assert: end is bigint
+                // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
+                if (!isInfinity(end) && typeof end !== "bigint") throw new TypeError() // @ts-expect-error
+                zero = 0n // @ts-expect-error
+                one = 1n
+            }
             if (isInfinity(start)) throw RangeError()
             const ifIncrease = end > start
             let inclusiveEnd = false
+
             /** @type {T} */ let step
             if (option === undefined || option === null) step = undefined
             else if (typeof option === "object") {
                 step = option.step
                 inclusiveEnd = Boolean(option.inclusive)
-            } else if (typeof option === primitiveType) step = option
+            } //
+            else if (type === SpecValue.NumberRange && typeof option === "number") step = option
+            else if (type === SpecValue.BigIntRange && typeof option === "bigint") step = option
             else throw new TypeError()
             if (step === undefined || step === null) {
-                if (ifIncrease) step = one
-                // @ts-ignore
+                if (ifIncrease) step = one // @ts-ignore
                 else step = -one
             }
-            if (typeof step !== primitiveType) throw new TypeError()
+
+            if (type === SpecValue.NumberRange && typeof step !== "number") throw new TypeError()
+            if (type === SpecValue.BigIntRange && typeof step !== "bigint") throw new TypeError()
+
             if (isInfinity(step)) throw RangeError()
             if (step === zero && start !== end) throw new RangeError()
-            const obj = super(start, end, step, inclusiveEnd, zero, one)
-            // @ts-ignore
-            return obj}
+            const obj = super(start, end, step, inclusiveEnd, zero, one) // @ts-ignore
+            return obj
+        }
         #brandCheck
         next() {
             this.#brandCheck
@@ -127,9 +137,9 @@ It should only be used to collect developers feedback about the APIs.`)
         configurable: true,
         writable: true,
         value: (start, end, option) => {
-            if (typeof start === 'number') return new NumericRangeIterator(start, end, option, SpecValue.NumberRange)
-            if (typeof start === 'bigint') return new NumericRangeIterator(start, end, option, SpecValue.BigIntRange)
-            throw new TypeError('Iterator.range only supports number and bigint.')
+            if (typeof start === "number") return new NumericRangeIterator(start, end, option, SpecValue.NumberRange)
+            if (typeof start === "bigint") return new NumericRangeIterator(start, end, option, SpecValue.BigIntRange)
+            throw new TypeError("Iterator.range only supports number and bigint.")
         },
     })
     function isInfinity(x) {
