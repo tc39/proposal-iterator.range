@@ -4,9 +4,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css" />
 <script src="./spec.js"></script>
 <pre class="metadata">
-title: Proposal Number.range & BigInt.range
+title: Range proposal
+status: proposal
 stage: 1
-contributors: "Jack Works"
+location: https://tc39.es/proposal-Number.range
+copyright: false
+contributors: Jack Works
 </pre>
 
 <emu-clause id="sec-number">
@@ -29,8 +32,9 @@ contributors: "Jack Works"
 </emu-clause>
 <emu-clause id="sec-algor">
     <h1>Algorithms</h1>
-    <emu-clause id="sec-create-numeric-range-iterator">
-        <h1><dfn>CreateNumericRangeIterator</dfn> ( _start_, _end_, _option_, _type_ )</h1>
+    <emu-clause id="sec-create-numeric-range-iterator" type="abstract operation">
+        <h1>CreateNumericRangeIterator ( _start_, _end_, _option_, _type_ )</h1>
+        <dl class="header"></dl>
         <emu-alg>
             1. If _type_ is ~number-range~, let _primitiveType_ be *"number"*, else let _primitiveType_ be *"bigint"*.
             1. If Type(_start_) is not _primitiveType_, throw a TypeError.
@@ -58,7 +62,7 @@ contributors: "Jack Works"
                 1. If _end_ is *NaN*, return *undefined*.
                 1. If _step_ is *NaN*, return *undefined*.
                 1. Let _ifIncrease_ be _end_ > _start_.
-                1. Let _ifStepIncrease_ to be _step_ > _zero_.
+                1. Let _ifStepIncrease_ be _step_ > _zero_.
                 1. If _ifIncrease_ is not equal to _ifStepIncrease_, return *undeﬁned*.
                 1. Let _hitsEnd_ be *false*.
                 1. Let _currentCount_ be _zero_.

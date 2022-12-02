@@ -14,11 +14,11 @@
     },
     "license": "MIT",
     "devDependencies": {
-        "@types/jest": "^27.0.2",
-        "core-js": "^3.19.1",
-        "ecmarkup": "^11.0.1",
-        "jest": "^27.3.1",
-        "prettier": "^2.4.1",
-        "@tc39/ecma262-biblio": "1.0.2284"
+        "@tc39/ecma262-biblio": "2.1.2481",
+        "@types/jest": "^29.2.3",
+        "core-js": "^3.26.1",
+        "ecmarkup": "^16.0.0",
+        "jest": "^29.3.1",
+        "prettier": "^2.8.0"
     }
 }
