@@ -11,17 +11,16 @@ It should only be used to collect developers feedback about the APIs.`)
     }
     const generatorPrototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})()))
     const origNext = generatorPrototype.next
-    generatorPrototype.next = new Proxy(origNext, {
-        apply(target, thisArg, args) {
-            let isRange = false
-            try {
-                Object.getOwnPropertyDescriptor(NumericRangeIterator.prototype, "start").get.call(thisArg)
-                isRange = true
-            } catch {}
-            if (isRange) throw new TypeError()
-            return Reflect.apply(target, thisArg, args)
-        },
-    })
+    /** @type {(o: any) => boolean} */
+    let isRangeIterator
+    if (Object.getOwnPropertyDescriptor(generatorPrototype, "next").writable) {
+        generatorPrototype.next = new Proxy(origNext, {
+            apply(target, thisArg, args) {
+                if (isRangeIterator(thisArg)) throw new TypeError()
+                return Reflect.apply(target, thisArg, args)
+            },
+        })
+    }
 
     /**
      * @template {number | bigint} T
@@ -32,7 +31,7 @@ It should only be used to collect developers feedback about the APIs.`)
      * @param {T} zero
      * @param {T} one
      */
-    function* closure(start, end, step, inclusiveEnd, zero, one) {
+    function* NumericRangeIteratorObject(start, end, step, inclusiveEnd, zero, one) {
         if (isNaN(start)) return
         if (isNaN(end)) return
         if (isNaN(step)) return
@@ -61,10 +60,10 @@ It should only be used to collect developers feedback about the APIs.`)
         return undefined
     }
     /**
-     * @param {Parameters<typeof closure>} args
+     * @param {Parameters<typeof NumericRangeIteratorObject>} args
      */
     function CreateNumericRangeIteratorWithInternalSlot(...args) {
-        const g = closure(...args)
+        const g = NumericRangeIteratorObject(...args)
         Reflect.setPrototypeOf(g, new.target.prototype)
         return g
     }
@@ -81,8 +80,7 @@ It should only be used to collect developers feedback about the APIs.`)
          */
         // @ts-ignore
         constructor(start, end, option, type) {
-            const primitiveType = type === SpecValue.NumberRange ? "number" : "bigint"
-            if (typeof start !== primitiveType) throw new TypeError() // @ts-ignore
+            const primitiveType = type === SpecValue.NumberRange ? "number" : "bigint" // @ts-ignore
             /** @type {T} */ const zero = type === SpecValue.BigIntRange ? 0n : 0 // @ts-ignore
             /** @type {T} */ const one = type === SpecValue.BigIntRange ? 1n : 1
             // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
@@ -106,32 +104,15 @@ It should only be used to collect developers feedback about the APIs.`)
             if (isInfinity(step)) throw RangeError()
             if (step === zero && start !== end) throw new RangeError()
             const obj = super(start, end, step, inclusiveEnd, zero, one)
-            this.#start = start
-            this.#end = end
-            this.#step = step
-            this.#inclusive = inclusiveEnd
             // @ts-ignore
-            return obj
-        }
+            return obj}
+        #brandCheck
         next() {
-            this.#start // brand check
+            this.#brandCheck
             return origNext.call(this)
         }
-        #start
-        #end
-        #step
-        #inclusive
-        get start() {
-            return this.#start
-        }
-        get end() {
-            return this.#end
-        }
-        get step() {
-            return this.#step
-        }
-        get inclusive() {
-            return this.#inclusive
+        static {
+            isRangeIterator = (o) => #brandCheck in o
         }
     }
     const IteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
@@ -142,15 +123,14 @@ It should only be used to collect developers feedback about the APIs.`)
         configurable: true,
         value: "NumericRangeIterator",
     })
-    Object.defineProperty(Number, "range", {
+    Object.defineProperty(Iterator, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => new NumericRangeIterator(start, end, option, SpecValue.NumberRange),
-    })
-    Object.defineProperty(BigInt, "range", {
-        configurable: true,
-        writable: true,
-        value: (start, end, option) => new NumericRangeIterator(start, end, option, SpecValue.BigIntRange),
+        value: (start, end, option) => {
+            if (typeof start === 'number') return new NumericRangeIterator(start, end, option, SpecValue.NumberRange)
+            if (typeof start === 'bigint') return new NumericRangeIterator(start, end, option, SpecValue.BigIntRange)
+            throw new TypeError('Iterator.range only supports number and bigint.')
+        },
     })
     function isInfinity(x) {
         if (typeof x !== "number") return false

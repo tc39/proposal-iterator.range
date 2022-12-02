@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/base16/solarized-light.min.css"><link rel="stylesheet" href="./spec.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
 <script src="./spec.js"></script>
-<title>Proposal Number.range &amp; BigInt.range</title><script>'use strict';
+<title>Range proposal</title><script>'use strict';
 let sdoBox = {
   init() {
     this.$alternativeId = null;
@@ -754,6 +754,7 @@ let referencePane = {
 
     let $spacer = document.createElement('div');
     $spacer.setAttribute('id', 'references-pane-spacer');
+    $spacer.classList.add('menu-spacer');
 
     this.$pane = document.createElement('div');
     this.$pane.setAttribute('id', 'references-pane');
@@ -902,6 +903,7 @@ let Toolbox = {
       e.preventDefault();
       e.stopPropagation();
       menu.togglePinEntry(this.entry.id);
+      this.$pinLink.textContent = menu._pinnedIds[this.entry.id] ? 'Unpin' : 'Pin';
     });
 
     this.$refsLink = document.createElement('a');
@@ -922,6 +924,7 @@ let Toolbox = {
     sdoBox.deactivate();
     this.active = true;
     this.entry = entry;
+    this.$pinLink.textContent = menu._pinnedIds[entry.id] ? 'Unpin' : 'Pin';
     this.$outer.classList.add('active');
     this.top = el.offsetTop - this.$outer.offsetHeight;
     this.left = el.offsetLeft - 10;
@@ -1117,6 +1120,114 @@ document.addEventListener('DOMContentLoaded', () => {
   referencePane.init();
 });
 
+// preserve state during navigation
+
+function getTocPath(li) {
+  let path = [];
+  let pointer = li;
+  while (true) {
+    let parent = pointer.parentElement;
+    if (parent == null) {
+      return null;
+    }
+    let index = [].indexOf.call(parent.children, pointer);
+    if (index == -1) {
+      return null;
+    }
+    path.unshift(index);
+    pointer = parent.parentElement;
+    if (pointer == null) {
+      return null;
+    }
+    if (pointer.id === 'menu-toc') {
+      break;
+    }
+    if (pointer.tagName !== 'LI') {
+      return null;
+    }
+  }
+  return path;
+}
+
+function activateTocPath(path) {
+  try {
+    let pointer = document.getElementById('menu-toc');
+    for (let index of path) {
+      pointer = pointer.querySelector('ol').children[index];
+    }
+    pointer.classList.add('active');
+  } catch (e) {
+    // pass
+  }
+}
+
+function getActiveTocPaths() {
+  return [...menu.$menu.querySelectorAll('.active')].map(getTocPath).filter(p => p != null);
+}
+
+function loadStateFromSessionStorage() {
+  if (!window.sessionStorage || typeof menu === 'undefined' || window.navigating) {
+    return;
+  }
+  if (sessionStorage.referencePaneState != null) {
+    let state = JSON.parse(sessionStorage.referencePaneState);
+    if (state != null) {
+      if (state.type === 'ref') {
+        let entry = menu.search.biblio.byId[state.id];
+        if (entry != null) {
+          referencePane.showReferencesFor(entry);
+        }
+      } else if (state.type === 'sdo') {
+        let sdos = sdoMap[state.id];
+        if (sdos != null) {
+          referencePane.$headerText.innerHTML = state.html;
+          referencePane.showSDOsBody(sdos, state.id);
+        }
+      }
+      delete sessionStorage.referencePaneState;
+    }
+  }
+
+  if (sessionStorage.activeTocPaths != null) {
+    document
+      .getElementById('menu-toc')
+      .querySelectorAll('.active')
+      .forEach(e => {
+        e.classList.remove('active');
+      });
+    let active = JSON.parse(sessionStorage.activeTocPaths);
+    active.forEach(activateTocPath);
+    delete sessionStorage.activeTocPaths;
+  }
+
+  if (sessionStorage.searchValue != null) {
+    let value = JSON.parse(sessionStorage.searchValue);
+    menu.search.$searchBox.value = value;
+    menu.search.search(value);
+    delete sessionStorage.searchValue;
+  }
+
+  if (sessionStorage.tocScroll != null) {
+    let tocScroll = JSON.parse(sessionStorage.tocScroll);
+    menu.$toc.scrollTop = tocScroll;
+    delete sessionStorage.tocScroll;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadStateFromSessionStorage);
+
+window.addEventListener('pageshow', loadStateFromSessionStorage);
+
+window.addEventListener('beforeunload', () => {
+  if (!window.sessionStorage || typeof menu === 'undefined') {
+    return;
+  }
+  sessionStorage.referencePaneState = JSON.stringify(referencePane.state || null);
+  sessionStorage.activeTocPaths = JSON.stringify(getActiveTocPaths());
+  sessionStorage.searchValue = JSON.stringify(menu.search.$searchBox.value);
+  sessionStorage.tocScroll = JSON.stringify(menu.$toc.scrollTop);
+});
+
 'use strict';
 let decimalBullet = Array.from({ length: 100 }, (a, i) => '' + (i + 1));
 let alphaBullet = Array.from({ length: 26 }, (a, i) => String.fromCharCode('a'.charCodeAt(0) + i));
@@ -1149,9 +1260,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let sdoMap = JSON.parse(`{}`);
-let biblio = JSON.parse(`{"refsByClause":{"sec-number-range":["_ref_0"],"sec-bigint-range":["_ref_1"],"sec-create-numeric-range-iterator":["_ref_2"],"sec-properties-of-the-numericrangeiterator-prototype-object-start":["_ref_3"],"sec-properties-of-the-numericrangeiterator-prototype-object-end":["_ref_4"],"sec-properties-of-the-numericrangeiterator-prototype-object-inclusive":["_ref_5"],"sec-properties-of-the-numericrangeiterator-prototype-object-step":["_ref_6"]},"entries":[{"type":"clause","id":"sec-number-range","title":"Number.range ( start, end, option )","titleHTML":"Number.range ( <var>start</var>, <var>end</var>, <var>option</var> )","number":"1.1"},{"type":"clause","id":"sec-number","titleHTML":"Number","number":"1"},{"type":"clause","id":"sec-bigint-range","title":"BigInt.range ( start, end, option )","titleHTML":"BigInt.range ( <var>start</var>, <var>end</var>, <var>option</var> )","number":"2.1"},{"type":"clause","id":"sec-bigint","titleHTML":"BigInt","number":"2"},{"type":"term","term":"CreateNumericRangeIterator","refId":"sec-create-numeric-range-iterator"},{"type":"clause","id":"sec-create-numeric-range-iterator","title":"CreateNumericRangeIterator ( start, end, option, type )","titleHTML":"<dfn>CreateNumericRangeIterator</dfn> ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )","number":"3.1","referencingIds":["_ref_0","_ref_1"]},{"type":"clause","id":"sec-algor","titleHTML":"Algorithms","number":"3"},{"type":"term","term":"%NumericRangeIteratorPrototype%","refId":"sec-properties-of-the-numbericrangeiterator-prototype-object"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-next","titleHTML":"%NumericRangeIterator%.next ( )","number":"4.1"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag","titleHTML":"%NumericRangeIteratorPrototype%.[@@toStringTag]","number":"4.2"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-start-getter","titleHTML":"get %NumericRangeIteratorPrototype%.start","number":"4.3.1"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-start","titleHTML":"%NumericRangeIteratorPrototype%.start","number":"4.3"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-end-getter","titleHTML":"get %NumericRangeIteratorPrototype%.end","number":"4.4.1"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-end","titleHTML":"%NumericRangeIteratorPrototype%.end","number":"4.4"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-inclusive-getter","titleHTML":"get %NumericRangeIteratorPrototype%.isEnclusiveEnd","number":"4.5.1"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-inclusive","titleHTML":"%NumericRangeIteratorPrototype%.inclusive","number":"4.5"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-step-getter","titleHTML":"get %NumericRangeIteratorPrototype%.step","number":"4.6.1"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-step","titleHTML":"%NumericRangeIteratorPrototype%.step","number":"4.6"},{"type":"table","id":"sec-numericrangeiterator-internal-slots","number":1,"caption":"Table 1: Internal slots"},{"type":"clause","id":"sec-numericrangeiterator-slots","titleHTML":"Internal slots","number":"4.7"},{"type":"clause","id":"sec-properties-of-the-numbericrangeiterator-prototype-object","titleHTML":"Properties of the NumericRangeIterator Prototype Object","number":"4","referencingIds":["_ref_2","_ref_3","_ref_4","_ref_5","_ref_6"]},{"type":"clause","id":"sec-copyright-and-software-license","title":"Copyright & Software License","titleHTML":"Copyright &amp; Software License","number":"A"}]}`);
+let biblio = JSON.parse(`{"refsByClause":{"sec-iterator.range":["_ref_0","_ref_1"],"sec-numeric-range-iterator-object":["_ref_2"],"sec-create-numeric-range-iterator":["_ref_3"],"sec-%numericrangeiteratorprototype%-object":["_ref_4"]},"entries":[{"type":"clause","id":"sec-iterator.range","title":"Iterator.range ( start, end, option )","titleHTML":"Iterator.range ( <var>start</var>, <var>end</var>, <var>option</var> )","number":"27.1.2.1"},{"type":"clause","id":"sec-properties-of-the-iterator-constructor","titleHTML":"Properties of the Iterator Constructor","number":"27.1.2"},{"type":"term","term":"NumericRangeIterator","refId":"sec-numeric-range-iterator-object"},{"type":"op","aoid":"CreateNumericRangeIterator","refId":"sec-create-numeric-range-iterator"},{"type":"clause","id":"sec-create-numeric-range-iterator","title":"CreateNumericRangeIterator ( start, end, option, type )","titleHTML":"CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )","number":"27.1.3.1","referencingIds":["_ref_0","_ref_1","_ref_2"]},{"type":"term","term":"%NumericRangeIteratorPrototype%","refId":"sec-%numericrangeiteratorprototype%-object"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-next","titleHTML":"%NumericRangeIterator%.next ( )","number":"27.1.3.2.1"},{"type":"clause","id":"sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag","titleHTML":"%NumericRangeIteratorPrototype%.[@@toStringTag]","number":"27.1.3.2.2"},{"type":"clause","id":"sec-%numericrangeiteratorprototype%-object","titleHTML":"The %NumericRangeIteratorPrototype% Object","number":"27.1.3.2","referencingIds":["_ref_3"]},{"type":"clause","id":"sec-numeric-range-iterator-object","title":"The NumericRangeIterator Object","titleHTML":"The <dfn>NumericRangeIterator</dfn> Object","number":"27.1.3","referencingIds":["_ref_4"]},{"type":"clause","id":"sec-iteration","titleHTML":"Iteration","number":"27.1"},{"type":"clause","id":"sec-control-abstraction-objects","titleHTML":"Control Abstraction Objects","number":"27"}]}`);
 ;let usesMultipage = false</script><style>body {
   display: flex;
+  word-wrap: break-word;
   font-size: 18px;
   line-height: 1.5;
   font-family: Cambria, Palatino Linotype, Palatino, Liberation Serif, serif;
@@ -1900,7 +2012,7 @@ tr.del > td {
   z-index: 2;
 }
 
-#menu-spacer {
+.menu-spacer {
   flex-basis: 33%;
   max-width: 500px;
   flex-grow: 0;
@@ -2315,11 +2427,6 @@ li.menu-search-result-term:before {
   overflow-y: auto;
 }
 
-#references-pane-spacer {
-  flex-basis: 33%;
-  max-width: 500px;
-}
-
 #references-pane {
   flex-grow: 1;
   overflow: hidden;
@@ -2335,6 +2442,10 @@ li.menu-search-result-term:before {
   content: '✖';
   float: right;
   cursor: pointer;
+}
+
+#references-pane table tbody {
+  vertical-align: baseline;
 }
 
 #references-pane table tr td:first-child {
@@ -2414,113 +2525,56 @@ li.menu-search-result-term:before {
 </ul></div><div id="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; stroke:currentColor" viewBox="0 0 120 120">
       <title>Menu</title>
       <path stroke-width="10" stroke-linecap="round" d="M30,60 h60  M30,30 m0,5 h60  M30,90 m0,-5 h60"></path>
-    </svg></div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-number" title="Number"><span class="secnum">1</span> Number</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-number-range" title="Number.range ( start, end, option )"><span class="secnum">1.1</span> Number.range ( <var>start</var>, <var>end</var>, <var>option</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-bigint" title="BigInt"><span class="secnum">2</span> BigInt</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-bigint-range" title="BigInt.range ( start, end, option )"><span class="secnum">2.1</span> BigInt.range ( <var>start</var>, <var>end</var>, <var>option</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-algor" title="Algorithms"><span class="secnum">3</span> Algorithms</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-create-numeric-range-iterator" title="CreateNumericRangeIterator ( start, end, option, type )"><span class="secnum">3.1</span> <dfn>CreateNumericRangeIterator</dfn> ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-numbericrangeiterator-prototype-object" title="Properties of the NumericRangeIterator Prototype Object"><span class="secnum">4</span> Properties of the NumericRangeIterator Prototype Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-next" title="%NumericRangeIterator%.next ( )"><span class="secnum">4.1</span> %NumericRangeIterator%.next ( )</a></li><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag" title="%NumericRangeIteratorPrototype%.[@@toStringTag]"><span class="secnum">4.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</a></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-start" title="%NumericRangeIteratorPrototype%.start"><span class="secnum">4.3</span> %NumericRangeIteratorPrototype%.start</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-start-getter" title="get %NumericRangeIteratorPrototype%.start"><span class="secnum">4.3.1</span> get %NumericRangeIteratorPrototype%.start</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-end" title="%NumericRangeIteratorPrototype%.end"><span class="secnum">4.4</span> %NumericRangeIteratorPrototype%.end</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-end-getter" title="get %NumericRangeIteratorPrototype%.end"><span class="secnum">4.4.1</span> get %NumericRangeIteratorPrototype%.end</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-inclusive" title="%NumericRangeIteratorPrototype%.inclusive"><span class="secnum">4.5</span> %NumericRangeIteratorPrototype%.inclusive</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-inclusive-getter" title="get %NumericRangeIteratorPrototype%.isEnclusiveEnd"><span class="secnum">4.5.1</span> get %NumericRangeIteratorPrototype%.isEnclusiveEnd</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-step" title="%NumericRangeIteratorPrototype%.step"><span class="secnum">4.6</span> %NumericRangeIteratorPrototype%.step</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-step-getter" title="get %NumericRangeIteratorPrototype%.step"><span class="secnum">4.6.1</span> get %NumericRangeIteratorPrototype%.step</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-numericrangeiterator-slots" title="Internal slots"><span class="secnum">4.7</span> Internal slots</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-copyright-and-software-license" title="Copyright &amp; Software License"><span class="secnum">A</span> Copyright &amp; Software License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 1 Draft / March 28, 2022</h1><h1 class="title">Proposal Number.range &amp; BigInt.range</h1>
+    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-control-abstraction-objects" title="Control Abstraction Objects"><span class="secnum">27</span> Control Abstraction Objects</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-iteration" title="Iteration"><span class="secnum">27.1</span> Iteration</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-iterator-constructor" title="Properties of the Iterator Constructor"><span class="secnum">27.1.2</span> Properties of the Iterator Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-iterator.range" title="Iterator.range ( start, end, option )"><span class="secnum">27.1.2.1</span> Iterator.range ( <var>start</var>, <var>end</var>, <var>option</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-numeric-range-iterator-object" title="The NumericRangeIterator Object"><span class="secnum">27.1.3</span> The <dfn>NumericRangeIterator</dfn> Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-create-numeric-range-iterator" title="CreateNumericRangeIterator ( start, end, option, type )"><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )</a></li><li><span class="item-toggle">◢</span><a href="#sec-%numericrangeiteratorprototype%-object" title="The %NumericRangeIteratorPrototype% Object"><span class="secnum">27.1.3.2</span> The %NumericRangeIteratorPrototype% Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-next" title="%NumericRangeIterator%.next ( )"><span class="secnum">27.1.3.2.1</span> %NumericRangeIterator%.next ( )</a></li><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag" title="%NumericRangeIteratorPrototype%.[@@toStringTag]"><span class="secnum">27.1.3.2.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 1 Draft / December 2, 2022</h1><h1 class="title">Range proposal</h1>
 
-<emu-clause id="sec-number">
-    <h1><span class="secnum">1</span> Number</h1>
-    <emu-clause id="sec-number-range">
-        <h1><span class="secnum">1.1</span> Number.range ( <var>start</var>, <var>end</var>, <var>option</var> )</h1>
-        <emu-alg><ol><li>Return ?&nbsp;<emu-xref href="#sec-create-numeric-range-iterator" id="_ref_0"><a href="#sec-create-numeric-range-iterator">CreateNumericRangeIterator</a></emu-xref>(<var>start</var>, <var>end</var>, <var>option</var>, <emu-const>number-range</emu-const>).</li></ol></emu-alg>
+<emu-clause id="sec-control-abstraction-objects" number="27">
+    <h1><span class="secnum">27</span> Control Abstraction Objects</h1>
+
+    <emu-clause id="sec-iteration" number="1">
+        <h1><span class="secnum">27.1</span> Iteration</h1>
+
+        <emu-clause id="sec-properties-of-the-iterator-constructor" number="2">
+            <h1><span class="secnum">27.1.2</span> Properties of the Iterator Constructor</h1>
+
+            <emu-clause id="sec-iterator.range">
+                <h1><span class="secnum">27.1.2.1</span> Iterator.range ( <var>start</var>, <var>end</var>, <var>option</var> )</h1>
+                <emu-alg><ol><li>If <var>start</var> <emu-xref href="#sec-ecmascript-language-types-number-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type">is a Number</a></emu-xref>, return ?&nbsp;<emu-xref aoid="CreateNumericRangeIterator" id="_ref_0"><a href="#sec-create-numeric-range-iterator">CreateNumericRangeIterator</a></emu-xref>(<var>start</var>, <var>end</var>, <var>option</var>, <emu-const>number-range</emu-const>).</li><li>If <var>start</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is a BigInt</a></emu-xref>, return ?&nbsp;<emu-xref aoid="CreateNumericRangeIterator" id="_ref_1"><a href="#sec-create-numeric-range-iterator">CreateNumericRangeIterator</a></emu-xref>(<var>start</var>, <var>end</var>, <var>option</var>, <emu-const>bigint-range</emu-const>).</li><li>Throw a <emu-val>TypeError</emu-val> exception.</li></ol></emu-alg>
+            </emu-clause>
+        </emu-clause>
+
+        <emu-clause id="sec-numeric-range-iterator-object">
+            <h1><span class="secnum">27.1.3</span> The <dfn>NumericRangeIterator</dfn> Object</h1>
+            <p>A NumericRangeIterator object is an iterator that yields numbers. There is not a named <emu-xref href="#constructor"><a href="https://tc39.es/ecma262/#constructor">constructor</a></emu-xref> for NumericRangeIterator objects. Instead, NumericRangeIterator objects are created by the <emu-xref aoid="CreateNumericRangeIterator" id="_ref_2"><a href="#sec-create-numeric-range-iterator">CreateNumericRangeIterator</a></emu-xref> abstract operation as needed.</p>
+
+            <emu-clause id="sec-create-numeric-range-iterator" type="abstract operation" aoid="CreateNumericRangeIterator">
+                <h1><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )</h1>
+                <p>The abstract operation CreateNumericRangeIterator takes arguments <var>start</var> (a Number or a BigInt), <var>end</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>), <var>option</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>), and <var>type</var> (<emu-const>number-range</emu-const> or <emu-const>bigint-range</emu-const>). It performs the following steps when called:</p>
+                <emu-alg><ol><li>If <var>type</var> is <emu-const>number-range</emu-const>, let <var>primitiveType</var> be <emu-val>"number"</emu-val>, else let <var>primitiveType</var> be <emu-val>"bigint"</emu-val>.</li><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>start</var>) is <var>primitiveType</var>.</li><li>If <var>type</var> is <emu-const>bigint-range</emu-const>, let <var>zero</var> be <emu-val>0n</emu-val><sub>ℤ</sub>, else let <var>zero</var> be <emu-val>0</emu-val><sub>ℤ</sub>.</li><li>If <var>type</var> is <emu-const>bigint-range</emu-const>, let <var>one</var> be <emu-val>1n</emu-val><sub>ℤ</sub>, else let <var>one</var> be <emu-val>1</emu-val><sub>ℤ</sub>.</li><li>If <var>end</var> is not <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val> and if <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>end</var>) is not <var>primitiveType</var>, throw a <emu-val>TypeError</emu-val> exception.
+                    <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">Allowing all kinds of number (number, bigint, decimals, ...) to range from a <emu-xref href="#finite"><a href="https://tc39.es/ecma262/#finite">finite</a></emu-xref> number to infinity.</div></emu-note></li><li>If <var>start</var> is <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>ifIncrease</var> be end &gt; start.</li><li>Let <var>inclusiveEnd</var> be <emu-val>false</emu-val>.</li><li>If <var>option</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, let <var>step</var> be <emu-val>undefined</emu-val>.</li><li>Else if <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>option</var>) is <emu-val>object</emu-val>, then<ol><li>Let <var>step</var> be ?&nbsp;<emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "step").</li><li>Let <var>inclusiveEnd</var> be <emu-xref aoid="ToBoolean"><a href="https://tc39.es/ecma262/#sec-toboolean">ToBoolean</a></emu-xref>(? <emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "inclusive")).</li></ol></li><li>Else if <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>option</var>) is <var>primitiveType</var>, let <var>step</var> be <var>option</var>.</li><li>Else, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, then<ol><li>If <var>ifIncrease</var> is <emu-val>true</emu-val>, let <var>step</var> be <var>one</var>.</li><li>Else let <var>step</var> be -<var>one</var>.</li></ol></li><li>If <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>step</var>) is not <var>primitiveType</var>, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>step</var> is <var>zero</var> and <var>start</var> is not equal to <var>end</var>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>closure</var> be a new <emu-xref href="#sec-abstract-closure"><a href="https://tc39.es/ecma262/#sec-abstract-closure">Abstract Closure</a></emu-xref> with no parameters that captures <var>start</var>, <var>end</var>, <var>step</var>, <var>inclusiveEnd</var>, <var>zero</var>, <var>one</var> and performs the following steps when called:<ol><li>If <var>start</var> is <emu-val>NaN</emu-val>, return <emu-val>undefined</emu-val>.</li><li>If <var>end</var> is <emu-val>NaN</emu-val>, return <emu-val>undefined</emu-val>.</li><li>If <var>step</var> is <emu-val>NaN</emu-val>, return <emu-val>undefined</emu-val>.</li><li>Let <var>ifIncrease</var> be <var>end</var> &gt; <var>start</var>.</li><li>Let <var>ifStepIncrease</var> be <var>step</var> &gt; <var>zero</var>.</li><li>If <var>ifIncrease</var> is not equal to <var>ifStepIncrease</var>, return <emu-val>undeﬁned</emu-val>.</li><li>Let <var>hitsEnd</var> be <emu-val>false</emu-val>.</li><li>Let <var>currentCount</var> be <var>zero</var>.</li><li>NOTE: You can debug these steps at https://tc39.es/proposal-Number.range/playground.html .</li><li>Repeat, while <var>hitsEnd</var> is <emu-val>false</emu-val>,<ol><li>Let <var>currentYieldingValue</var> be <var>start</var> + (<var>step</var> * <var>currentCount</var>).</li><li>If <var>currentYieldingValue</var> equal to <var>end</var>, Set <var>hitsEnd</var> to <emu-val>true</emu-val>.</li><li>Set <var>currentCount</var> to <var>currentCount</var> + <var>one</var>.
+                            NOTE: Prevent value overflow.</li><li>Let <var>endCondition</var> be <emu-val>false</emu-val>.</li><li>If <var>ifIncrease</var> is <emu-val>true</emu-val>, then<ol><li>If <var>inclusiveEnd</var> is <emu-val>true</emu-val>, set <var>endCondition</var> be <var>currentYieldingValue</var> &gt; <var>end</var>.</li><li>Else set <var>endCondition</var> be <var>currentYieldingValue</var> &gt;= <var>end</var>.</li></ol></li><li>Else,<ol><li>If <var>inclusiveEnd</var> is <emu-val>true</emu-val>, set <var>endCondition</var> be <var>end</var> &gt; <var>currentYieldingValue</var>.</li><li>Else set <var>endCondition</var> be <var>end</var> &gt;= <var>currentYieldingValue</var>.</li></ol></li><li>If <var>endCondition</var> is <emu-val>true</emu-val>, return <emu-val>undeﬁned</emu-val>.</li><li>Perform ?&nbsp;<emu-xref aoid="Yield"><a href="https://tc39.es/ecma262/#sec-yield">Yield</a></emu-xref>(<var>currentYieldingValue</var>).</li></ol></li><li>Return <emu-val>undefined</emu-val>.</li></ol></li><li>Let <var>iterator</var> be <emu-xref aoid="CreateIteratorFromClosure"><a href="https://tc39.es/ecma262/#sec-createiteratorfromclosure">CreateIteratorFromClosure</a></emu-xref>(<var>closure</var>, <emu-val>"%NumericRangeIteratorPrototype%"</emu-val>, <emu-xref href="#sec-%numericrangeiteratorprototype%-object" id="_ref_3"><a href="#sec-%numericrangeiteratorprototype%-object">%NumericRangeIteratorPrototype%</a></emu-xref>).</li><li>Return <var>iterator</var>.</li></ol></emu-alg>
+            </emu-clause>
+
+            <emu-clause id="sec-%numericrangeiteratorprototype%-object">
+                <h1><span class="secnum">27.1.3.2</span> The %NumericRangeIteratorPrototype% Object</h1>
+                <p>The <dfn>%NumericRangeIteratorPrototype%</dfn> object:</p>
+                <ul>
+                    <li>has properties that are inherited by all <emu-xref href="#sec-numeric-range-iterator-object" id="_ref_4"><a href="#sec-numeric-range-iterator-object">NumericRangeIterator</a></emu-xref> Objects.</li>
+                    <li>is an <emu-xref href="#ordinary-object"><a href="https://tc39.es/ecma262/#ordinary-object">ordinary object</a></emu-xref>.</li>
+                    <li>has a [[Prototype]] internal slot whose value is <emu-xref href="#sec-%iteratorprototype%-object"><a href="https://tc39.es/ecma262/#sec-%iteratorprototype%-object">%IteratorPrototype%</a></emu-xref>.</li>
+                    <li>has the following properties:</li>
+                </ul>
+
+                <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-next">
+                    <h1><span class="secnum">27.1.3.2.1</span> %NumericRangeIterator%.next ( )</h1>
+                    <emu-alg><ol><li>Return ?&nbsp;<emu-xref aoid="GeneratorResume"><a href="https://tc39.es/ecma262/#sec-generatorresume">GeneratorResume</a></emu-xref>(<emu-val>this</emu-val> value, <emu-const>empty</emu-const>, <emu-val>"%NumericRangeIteratorPrototype%"</emu-val>).</li></ol></emu-alg>
+                </emu-clause>
+                <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag">
+                    <h1><span class="secnum">27.1.3.2.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</h1>
+                    <p>The initial value of the <emu-xref href="#sec-well-known-symbols"><a href="https://tc39.es/ecma262/#sec-well-known-symbols">@@toStringTag</a></emu-xref> property is the String value <code>"NumericRangeIterator"</code>.</p>
+                    <p>This property has the attributes { [[Writable]]: <emu-val>false</emu-val>, [[Enumerable]]: <emu-val>false</emu-val>, [[Configurable]]: <emu-val>true</emu-val> }.</p>
+                </emu-clause>
+            </emu-clause>
+        </emu-clause>
     </emu-clause>
 </emu-clause>
-<emu-clause id="sec-bigint">
-    <h1><span class="secnum">2</span> BigInt</h1>
-    <emu-clause id="sec-bigint-range">
-        <h1><span class="secnum">2.1</span> BigInt.range ( <var>start</var>, <var>end</var>, <var>option</var> )</h1>
-        <emu-alg><ol><li>Return ?&nbsp;<emu-xref href="#sec-create-numeric-range-iterator" id="_ref_1"><a href="#sec-create-numeric-range-iterator">CreateNumericRangeIterator</a></emu-xref>(<var>start</var>, <var>end</var>, <var>option</var>, <emu-const>bigint-range</emu-const>).</li></ol></emu-alg>
-    </emu-clause>
-</emu-clause>
-<emu-clause id="sec-algor">
-    <h1><span class="secnum">3</span> Algorithms</h1>
-    <emu-clause id="sec-create-numeric-range-iterator">
-        <h1><span class="secnum">3.1</span> <dfn>CreateNumericRangeIterator</dfn> ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )</h1>
-        <emu-alg><ol><li>If <var>type</var> is <emu-const>number-range</emu-const>, let <var>primitiveType</var> be <emu-val>"number"</emu-val>, else let <var>primitiveType</var> be <emu-val>"bigint"</emu-val>.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>start</var>) is not <var>primitiveType</var>, throw a TypeError.</li><li>If <var>type</var> is <emu-const>bigint-range</emu-const>, let <var>zero</var> be <emu-val>0n</emu-val><sub>ℤ</sub>, else let <var>zero</var> be <emu-val>0</emu-val><sub>ℤ</sub>.</li><li>If <var>type</var> is <emu-const>bigint-range</emu-const>, let <var>one</var> be <emu-val>1n</emu-val><sub>ℤ</sub>, else let <var>one</var> be <emu-val>1</emu-val><sub>ℤ</sub>.</li><li>NOTE: <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</div></emu-note>.</li><li>If <var>end</var> is not <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val> and if <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>end</var>) is not <var>primitiveType</var>, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>start</var> is <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>ifIncrease</var> be end &gt; start.</li><li>Let <var>inclusiveEnd</var> be <emu-val>false</emu-val>.</li><li>If <var>option</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, let <var>step</var> be <emu-val>undefined</emu-val>.</li><li>Else if <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>option</var>) is <emu-val>object</emu-val>, then<ol><li>Let <var>step</var> be ?&nbsp;<emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "step").</li><li>Let <var>inclusiveEnd</var> be <emu-xref aoid="ToBoolean"><a href="https://tc39.es/ecma262/#sec-toboolean">ToBoolean</a></emu-xref>(? <emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "inclusive")).</li></ol></li><li>Else if <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>option</var>) is <var>primitiveType</var>, let <var>step</var> be <var>option</var>.</li><li>Else, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, then<ol><li>If <var>ifIncrease</var> is <emu-val>true</emu-val>, let <var>step</var> be <var>one</var>.</li><li>Else let <var>step</var> be -<var>one</var>.</li></ol></li><li>If <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>step</var>) is not <var>primitiveType</var>, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>step</var> is <var>zero</var> and <var>start</var> is not equal to <var>end</var>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>closure</var> be a new <emu-xref href="#sec-abstract-closure"><a href="https://tc39.es/ecma262/#sec-abstract-closure">Abstract Closure</a></emu-xref> with no parameters that captures <var>start</var>, <var>end</var>, <var>step</var>, <var>inclusiveEnd</var>, <var>zero</var>, <var>one</var> and performs the following steps when called:<ol><li>If <var>start</var> is <emu-val>NaN</emu-val>, return <emu-val>undefined</emu-val>.</li><li>If <var>end</var> is <emu-val>NaN</emu-val>, return <emu-val>undefined</emu-val>.</li><li>If <var>step</var> is <emu-val>NaN</emu-val>, return <emu-val>undefined</emu-val>.</li><li>Let <var>ifIncrease</var> be <var>end</var> &gt; <var>start</var>.</li><li>Let <var>ifStepIncrease</var> to be <var>step</var> &gt; <var>zero</var>.</li><li>If <var>ifIncrease</var> is not equal to <var>ifStepIncrease</var>, return <emu-val>undeﬁned</emu-val>.</li><li>Let <var>hitsEnd</var> be <emu-val>false</emu-val>.</li><li>Let <var>currentCount</var> be <var>zero</var>.</li><li>NOTE: Debug these steps at https://tc39.es/proposal-Number.range/playground.html .</li><li>Repeat, while <var>hitsEnd</var> is <emu-val>false</emu-val>,<ol><li>Let <var>currentYieldingValue</var> be <var>start</var> + (<var>step</var> * <var>currentCount</var>).</li><li>If <var>currentYieldingValue</var> equal to <var>end</var>, Set <var>hitsEnd</var> to <emu-val>true</emu-val>.</li><li>Set <var>currentCount</var> to <var>currentCount</var> + <var>one</var>.
-                    NOTE: Prevent value overflow.</li><li>Let <var>endCondition</var> be <emu-val>false</emu-val>.</li><li>If <var>ifIncrease</var> is <emu-val>true</emu-val>, then<ol><li>If <var>inclusiveEnd</var> is <emu-val>true</emu-val>, set <var>endCondition</var> be <var>currentYieldingValue</var> &gt; <var>end</var>.</li><li>Else set <var>endCondition</var> be <var>currentYieldingValue</var> &gt;= <var>end</var>.</li></ol></li><li>Else,<ol><li>If <var>inclusiveEnd</var> is <emu-val>true</emu-val>, set <var>endCondition</var> be <var>end</var> &gt; <var>currentYieldingValue</var>.</li><li>Else set <var>endCondition</var> be <var>end</var> &gt;= <var>currentYieldingValue</var>.</li></ol></li><li>If <var>endCondition</var> is <emu-val>true</emu-val>, return <emu-val>undeﬁned</emu-val>.</li><li>Perform ?&nbsp;<emu-xref aoid="Yield"><a href="https://tc39.es/ecma262/#sec-yield">Yield</a></emu-xref>(<var>currentYieldingValue</var>).</li></ol></li><li>Return <emu-val>undefined</emu-val>.</li></ol></li><li>Let <var>iterator</var> be <emu-xref aoid="CreateIteratorFromClosure"><a href="https://tc39.es/ecma262/#sec-createiteratorfromclosure">CreateIteratorFromClosure</a></emu-xref>(<var>closure</var>, <emu-const>Numberic Range Iterator</emu-const>, <emu-xref href="#sec-properties-of-the-numbericrangeiterator-prototype-object" id="_ref_2"><a href="#sec-properties-of-the-numbericrangeiterator-prototype-object">%NumericRangeIteratorPrototype%</a></emu-xref>, « start, end, step, inclusiveEnd »).</li><li>Set <var>iterator</var>.[[start]] to <var>start</var>.</li><li>Set <var>iterator</var>.[[end]] to <var>end</var>.</li><li>Set <var>iterator</var>.[[step]] to <var>step</var>.</li><li>Set <var>iterator</var>.[[inclusiveEnd]] to <var>inclusiveEnd</var>.</li><li>Return <var>iterator</var>.</li></ol></emu-alg>
-    </emu-clause>
-</emu-clause>
-
-<emu-clause id="sec-properties-of-the-numbericrangeiterator-prototype-object">
-    <h1><span class="secnum">4</span> Properties of the NumericRangeIterator Prototype Object</h1>
-    <p>The NumericRangeIterator prototype object is the intrinsic object <dfn>%NumericRangeIteratorPrototype%</dfn>.</p>
-    <p>The value has a [[Prototype]] internal slot whose value is the intrinsic object <emu-xref href="#sec-%iteratorprototype%-object"><a href="https://tc39.es/ecma262/#sec-%iteratorprototype%-object">%IteratorPrototype%</a></emu-xref>.</p>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-next">
-        <h1><span class="secnum">4.1</span> %NumericRangeIterator%.next ( )</h1>
-        <emu-alg><ol><li>Return ?&nbsp;<emu-xref aoid="GeneratorResume"><a href="https://tc39.es/ecma262/#sec-generatorresume">GeneratorResume</a></emu-xref>(<emu-val>this</emu-val> value, <emu-val>undefined</emu-val>, <emu-const>Numeric Range Iterator</emu-const>).</li></ol></emu-alg>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag">
-        <h1><span class="secnum">4.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</h1>
-        <p>The initial value of the <emu-xref href="#sec-well-known-symbols"><a href="https://tc39.es/ecma262/#sec-well-known-symbols">@@toStringTag</a></emu-xref> property is the String value <code>"NumericRangeIterator"</code>.</p>
-        <p>This property has the attributes { [[Writable]]: <emu-val>false</emu-val>, [[Enumerable]]: <emu-val>false</emu-val>, [[Configurable]]: <emu-val>true</emu-val> }.</p>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-start">
-        <h1><span class="secnum">4.3</span> %NumericRangeIteratorPrototype%.start</h1>
-        <p><emu-xref href="#sec-properties-of-the-numbericrangeiterator-prototype-object" id="_ref_3"><a href="#sec-properties-of-the-numbericrangeiterator-prototype-object">%NumericRangeIteratorPrototype%</a></emu-xref>.start is an <emu-xref href="#sec-object-type"><a href="https://tc39.es/ecma262/#sec-object-type">accessor property</a></emu-xref> with attributes { [[Enumerable]]: false, [[Configurable]]: <emu-val>true</emu-val>}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-start-getter">
-            <h1><span class="secnum">4.3.1</span> get %NumericRangeIteratorPrototype%.start</h1>
-            <emu-alg><ol><li>Perform ?&nbsp;<emu-xref aoid="RequireInternalSlot"><a href="https://tc39.es/ecma262/#sec-requireinternalslot">RequireInternalSlot</a></emu-xref>(<emu-val>this</emu-val>, [[start]]).</li><li>Return <emu-val>this</emu-val>.[[start]].</li></ol></emu-alg>
-        </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-end">
-        <h1><span class="secnum">4.4</span> %NumericRangeIteratorPrototype%.end</h1>
-        <p><emu-xref href="#sec-properties-of-the-numbericrangeiterator-prototype-object" id="_ref_4"><a href="#sec-properties-of-the-numbericrangeiterator-prototype-object">%NumericRangeIteratorPrototype%</a></emu-xref>.end is an <emu-xref href="#sec-object-type"><a href="https://tc39.es/ecma262/#sec-object-type">accessor property</a></emu-xref> with attributes { [[Enumerable]]: false, [[Configurable]]: <emu-val>true</emu-val>}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-end-getter">
-            <h1><span class="secnum">4.4.1</span> get %NumericRangeIteratorPrototype%.end</h1>
-            <emu-alg><ol><li>Perform ?&nbsp;<emu-xref aoid="RequireInternalSlot"><a href="https://tc39.es/ecma262/#sec-requireinternalslot">RequireInternalSlot</a></emu-xref>(<emu-val>this</emu-val>, [[end]]).</li><li>Return <emu-val>this</emu-val>.[[end]].</li></ol></emu-alg>
-        </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive">
-        <h1><span class="secnum">4.5</span> %NumericRangeIteratorPrototype%.inclusive</h1>
-        <p><emu-xref href="#sec-properties-of-the-numbericrangeiterator-prototype-object" id="_ref_5"><a href="#sec-properties-of-the-numbericrangeiterator-prototype-object">%NumericRangeIteratorPrototype%</a></emu-xref>.inclusive is an <emu-xref href="#sec-object-type"><a href="https://tc39.es/ecma262/#sec-object-type">accessor property</a></emu-xref> with attributes { [[Enumerable]]: false, [[Configurable]]: <emu-val>true</emu-val>}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive-getter">
-            <h1><span class="secnum">4.5.1</span> get %NumericRangeIteratorPrototype%.isEnclusiveEnd</h1>
-            <emu-alg><ol><li>Perform ?&nbsp;<emu-xref aoid="RequireInternalSlot"><a href="https://tc39.es/ecma262/#sec-requireinternalslot">RequireInternalSlot</a></emu-xref>(<emu-val>this</emu-val>, [[inclusiveEnd]]).</li><li>Return <emu-val>this</emu-val>.[[inclusiveEnd]].</li></ol></emu-alg>
-        </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-step">
-        <h1><span class="secnum">4.6</span> %NumericRangeIteratorPrototype%.step</h1>
-        <p><emu-xref href="#sec-properties-of-the-numbericrangeiterator-prototype-object" id="_ref_6"><a href="#sec-properties-of-the-numbericrangeiterator-prototype-object">%NumericRangeIteratorPrototype%</a></emu-xref>.step is an <emu-xref href="#sec-object-type"><a href="https://tc39.es/ecma262/#sec-object-type">accessor property</a></emu-xref> with attributes { [[Enumerable]]: false, [[Configurable]]: <emu-val>true</emu-val>}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-step-getter">
-            <h1><span class="secnum">4.6.1</span> get %NumericRangeIteratorPrototype%.step</h1>
-            <emu-alg><ol><li>Perform ?&nbsp;<emu-xref aoid="RequireInternalSlot"><a href="https://tc39.es/ecma262/#sec-requireinternalslot">RequireInternalSlot</a></emu-xref>(<emu-val>this</emu-val>, [[step]]).</li><li>Return <emu-val>this</emu-val>.[[step]].</li></ol></emu-alg>
-        </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-numericrangeiterator-slots">
-        <h1><span class="secnum">4.7</span> Internal slots</h1>
-        <emu-table id="sec-numericrangeiterator-internal-slots" caption="Internal slots"><figure><figcaption>Table 1: Internal slots</figcaption>
-            <table>
-            <thead>
-            <tr>
-            <td>Internal slot</td>
-            <td>Description</td>
-            </tr>
-            </thead>
-            <tbody>
-            <tr><td>[[start]]</td><td>The range starts start.</td></tr>
-            <tr><td>[[end]]</td><td>The range ends to.</td></tr>
-            <tr><td>[[step]]</td><td>The range step size.</td></tr>
-            <tr><td>[[inclusiveEnd]]</td><td>Boolean. If the end is inclusive.</td></tr>
-            </tbody>
-            </table>
-        </figure></emu-table>
-    </emu-clause>
-</emu-clause><emu-annex id="sec-copyright-and-software-license">
-      <h1><span class="secnum">A</span> Copyright &amp; Software License</h1>
-      
-      <h2>Copyright Notice</h2>
-      <p>© 2022 Jack Works</p>
-
-      <h2>Software License</h2>
-      <p>All Software contained in this document ("Software") is protected by copyright and is being made available under the "BSD License", included below. This Software may be subject to third party rights (rights from parties other than Ecma International), including patent rights, and no licenses under such third party rights are granted under this license even if the third party concerned is a member of Ecma International. SEE THE ECMA CODE OF CONDUCT IN PATENT MATTERS AVAILABLE AT https://ecma-international.org/memento/codeofconduct.htm FOR INFORMATION REGARDING THE LICENSING OF PATENT CLAIMS THAT ARE REQUIRED TO IMPLEMENT ECMA INTERNATIONAL STANDARDS.</p>
-
-<p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
-
-<ol>
-  <li>Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</li>
-  <li>Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</li>
-  <li>Neither the name of the authors nor Ecma International may be used to endorse or promote products derived from this software without specific prior written permission.</li>
-</ol>
-
-<p>THIS SOFTWARE IS PROVIDED BY THE ECMA INTERNATIONAL "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ECMA INTERNATIONAL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
-
-    </emu-annex>
 </div></body>

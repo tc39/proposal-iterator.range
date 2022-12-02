@@ -12,162 +12,113 @@ copyright: false
 contributors: Jack Works
 </pre>
 
-<emu-clause id="sec-number">
-    <h1>Number</h1>
-    <emu-clause id="sec-number-range">
-        <h1>Number.range ( _start_, _end_, _option_ )</h1>
-        <emu-alg>
-            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, ~number-range~).
-        </emu-alg>
-    </emu-clause>
-</emu-clause>
-<emu-clause id="sec-bigint">
-    <h1>BigInt</h1>
-    <emu-clause id="sec-bigint-range">
-        <h1>BigInt.range ( _start_, _end_, _option_ )</h1>
-        <emu-alg>
-            1. Return ? CreateNumericRangeIterator(_start_, _end_, _option_, ~bigint-range~).
-        </emu-alg>
-    </emu-clause>
-</emu-clause>
-<emu-clause id="sec-algor">
-    <h1>Algorithms</h1>
-    <emu-clause id="sec-create-numeric-range-iterator" type="abstract operation">
-        <h1>CreateNumericRangeIterator ( _start_, _end_, _option_, _type_ )</h1>
-        <dl class="header"></dl>
-        <emu-alg>
-            1. If _type_ is ~number-range~, let _primitiveType_ be *"number"*, else let _primitiveType_ be *"bigint"*.
-            1. If Type(_start_) is not _primitiveType_, throw a TypeError.
-            1. If _type_ is ~bigint-range~, let _zero_ be *0n*<sub>ℤ</sub>, else let _zero_ be *0*<sub>ℤ</sub>.
-            1. If _type_ is ~bigint-range~, let _one_ be *1n*<sub>ℤ</sub>, else let _one_ be *1*<sub>ℤ</sub>.
-            1. NOTE: <emu-note type="editor">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</emu-note>.
-            1. If _end_ is not *+∞* or *-∞* and if Type(_end_) is not _primitiveType_, throw a *TypeError* exception.
-            1. If _start_ is *+∞* or *-∞*, throw a *RangeError* exception.
-            1. Let _ifIncrease_ be end > start.
-            1. Let _inclusiveEnd_ be *false*.
-            1. If _option_ is *undefined* or *null*, let _step_ be *undefined*.
-            1. Else if Type(_option_) is *object*, then
-                1. Let _step_ be ? Get(_option_, "step").
-                1. Let _inclusiveEnd_ be ToBoolean(? Get(_option_, "inclusive")).
-            1. Else if Type(_option_) is _primitiveType_, let _step_ be _option_.
-            1. Else, throw a *TypeError* exception.
-            1. If _step_ is *undefined* or *null*, then
-                1. If _ifIncrease_ is *true*, let _step_ be _one_.
-                1. Else let _step_ be -_one_.
-            1. If Type(_step_) is not _primitiveType_, throw a *TypeError* exception.
-            1. If _step_ is *+∞* or *-∞*, throw a *RangeError* exception.
-            1. If _step_ is _zero_ and _start_ is not equal to _end_, throw a *RangeError* exception.
-            1. Let _closure_ be a new Abstract Closure with no parameters that captures _start_, _end_, _step_, _inclusiveEnd_, _zero_, _one_ and performs the following steps when called:
-                1. If _start_ is *NaN*, return *undefined*.
-                1. If _end_ is *NaN*, return *undefined*.
-                1. If _step_ is *NaN*, return *undefined*.
-                1. Let _ifIncrease_ be _end_ > _start_.
-                1. Let _ifStepIncrease_ be _step_ > _zero_.
-                1. If _ifIncrease_ is not equal to _ifStepIncrease_, return *undeﬁned*.
-                1. Let _hitsEnd_ be *false*.
-                1. Let _currentCount_ be _zero_.
-                1. NOTE: Debug these steps at https://tc39.es/proposal-Number.range/playground.html .
-                1. Repeat, while _hitsEnd_ is *false*,
-                    1. Let _currentYieldingValue_ be _start_ + (_step_ \* _currentCount_).
-                    1. If _currentYieldingValue_ equal to _end_, Set _hitsEnd_ to *true*.
-                    1. Set _currentCount_ to _currentCount_ + _one_.
-                    NOTE: Prevent value overflow.
-                    1. Let _endCondition_ be *false*.
-                    1. If _ifIncrease_ is *true*, then
-                        1. If _inclusiveEnd_ is *true*, set _endCondition_ be _currentYieldingValue_ > _end_.
-                        1. Else set _endCondition_ be _currentYieldingValue_ >= _end_.
-                    1. Else,
-                        1. If _inclusiveEnd_ is *true*, set _endCondition_ be _end_ > _currentYieldingValue_.
-                        1. Else set _endCondition_ be _end_ >= _currentYieldingValue_.
-                    1. If _endCondition_ is *true*, return *undeﬁned*.
-                    1. Perform ? Yield(_currentYieldingValue_).
-                1. Return *undefined*.
-            1. Let _iterator_ be CreateIteratorFromClosure(_closure_, ~Numberic Range Iterator~, %NumericRangeIteratorPrototype%, &laquo; start, end, step, inclusiveEnd &raquo;).
-            1. Set _iterator_.[[start]] to _start_.
-            1. Set _iterator_.[[end]] to _end_.
-            1. Set _iterator_.[[step]] to _step_.
-            1. Set _iterator_.[[inclusiveEnd]] to _inclusiveEnd_.
-            1. Return _iterator_.
-        </emu-alg>
-    </emu-clause>
-</emu-clause>
+<emu-clause id="sec-control-abstraction-objects" number="27">
+    <h1>Control Abstraction Objects</h1>
 
-<emu-clause id="sec-properties-of-the-numbericrangeiterator-prototype-object">
-    <h1>Properties of the NumericRangeIterator Prototype Object</h1>
-    <p>The NumericRangeIterator prototype object is the intrinsic object <dfn>%NumericRangeIteratorPrototype%</dfn>.</p>
-    <p>The value has a [[Prototype]] internal slot whose value is the intrinsic object %IteratorPrototype%.</p>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-next">
-        <h1>%NumericRangeIterator%.next ( )</h1>
-        <emu-alg>
-            1. Return ? GeneratorResume(*this* value, *undefined*, ~Numeric Range Iterator~).
-        </emu-alg>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag">
-        <h1>%NumericRangeIteratorPrototype%.[@@toStringTag]</h1>
-        <p>The initial value of the @@toStringTag property is the String value `"NumericRangeIterator"`.</p>
-        <p>This property has the attributes { [[Writable]]: *false*, [[Enumerable]]: *false*, [[Configurable]]: *true* }.</p>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-start">
-        <h1>%NumericRangeIteratorPrototype%.start</h1>
-        <p>%NumericRangeIteratorPrototype%.start is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-start-getter">
-            <h1>get %NumericRangeIteratorPrototype%.start</h1>
-            <emu-alg>
-                1. Perform ? RequireInternalSlot(*this*, [[start]]).
-                1. Return *this*.[[start]].
-            </emu-alg>
+    <emu-clause id="sec-iteration" number="1">
+        <h1>Iteration</h1>
+
+        <emu-clause id="sec-properties-of-the-iterator-constructor" number="2">
+            <h1>Properties of the Iterator Constructor</h1>
+
+            <emu-clause id="sec-iterator.range">
+                <h1>Iterator.range ( _start_, _end_, _option_ )</h1>
+                <emu-alg>
+                    1. If _start_ is a Number, return ? CreateNumericRangeIterator(_start_, _end_, _option_, ~number-range~).
+                    1. If _start_ is a BigInt, return ? CreateNumericRangeIterator(_start_, _end_, _option_, ~bigint-range~).
+                    1. Throw a *TypeError* exception.
+                </emu-alg>
+            </emu-clause>
         </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-end">
-        <h1>%NumericRangeIteratorPrototype%.end</h1>
-        <p>%NumericRangeIteratorPrototype%.end is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-end-getter">
-            <h1>get %NumericRangeIteratorPrototype%.end</h1>
-            <emu-alg>
-                1. Perform ? RequireInternalSlot(*this*, [[end]]).
-                1. Return *this*.[[end]].
-            </emu-alg>
+
+        <emu-clause id="sec-numeric-range-iterator-object">
+            <h1>The <dfn>NumericRangeIterator</dfn> Object</h1>
+            <p>A NumericRangeIterator object is an iterator that yields numbers. There is not a named constructor for NumericRangeIterator objects. Instead, NumericRangeIterator objects are created by the CreateNumericRangeIterator abstract operation as needed.</p>
+
+            <emu-clause id="sec-create-numeric-range-iterator" type="abstract operation">
+                <h1>
+                    CreateNumericRangeIterator (
+                        _start_: a Number or a BigInt,
+                        _end_: an ECMAScript language value,
+                        _option_: an ECMAScript language value,
+                        _type_: ~number-range~ or ~bigint-range~
+                    )
+                </h1>
+                <dl class="header"></dl>
+                <emu-alg>
+                    1. If _type_ is ~number-range~, let _primitiveType_ be *"number"*, else let _primitiveType_ be *"bigint"*.
+                    1. Assert: Type(_start_) is _primitiveType_.
+                    1. If _type_ is ~bigint-range~, let _zero_ be *0n*<sub>ℤ</sub>, else let _zero_ be *0*<sub>ℤ</sub>.
+                    1. If _type_ is ~bigint-range~, let _one_ be *1n*<sub>ℤ</sub>, else let _one_ be *1*<sub>ℤ</sub>.
+                    1. If _end_ is not *+∞* or *-∞* and if Type(_end_) is not _primitiveType_, throw a *TypeError* exception.
+                    <emu-note type="editor">Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.</emu-note>
+                    1. If _start_ is *+∞* or *-∞*, throw a *RangeError* exception.
+                    1. Let _ifIncrease_ be end > start.
+                    1. Let _inclusiveEnd_ be *false*.
+                    1. If _option_ is *undefined* or *null*, let _step_ be *undefined*.
+                    1. Else if Type(_option_) is *object*, then
+                        1. Let _step_ be ? Get(_option_, "step").
+                        1. Let _inclusiveEnd_ be ToBoolean(? Get(_option_, "inclusive")).
+                    1. Else if Type(_option_) is _primitiveType_, let _step_ be _option_.
+                    1. Else, throw a *TypeError* exception.
+                    1. If _step_ is *undefined* or *null*, then
+                        1. If _ifIncrease_ is *true*, let _step_ be _one_.
+                        1. Else let _step_ be -_one_.
+                    1. If Type(_step_) is not _primitiveType_, throw a *TypeError* exception.
+                    1. If _step_ is *+∞* or *-∞*, throw a *RangeError* exception.
+                    1. If _step_ is _zero_ and _start_ is not equal to _end_, throw a *RangeError* exception.
+                    1. Let _closure_ be a new Abstract Closure with no parameters that captures _start_, _end_, _step_, _inclusiveEnd_, _zero_, _one_ and performs the following steps when called:
+                        1. If _start_ is *NaN*, return *undefined*.
+                        1. If _end_ is *NaN*, return *undefined*.
+                        1. If _step_ is *NaN*, return *undefined*.
+                        1. Let _ifIncrease_ be _end_ > _start_.
+                        1. Let _ifStepIncrease_ be _step_ > _zero_.
+                        1. If _ifIncrease_ is not equal to _ifStepIncrease_, return *undeﬁned*.
+                        1. Let _hitsEnd_ be *false*.
+                        1. Let _currentCount_ be _zero_.
+                        1. NOTE: You can debug these steps at https://tc39.es/proposal-Number.range/playground.html .
+                        1. Repeat, while _hitsEnd_ is *false*,
+                            1. Let _currentYieldingValue_ be _start_ + (_step_ \* _currentCount_).
+                            1. If _currentYieldingValue_ equal to _end_, Set _hitsEnd_ to *true*.
+                            1. Set _currentCount_ to _currentCount_ + _one_.
+                            NOTE: Prevent value overflow.
+                            1. Let _endCondition_ be *false*.
+                            1. If _ifIncrease_ is *true*, then
+                                1. If _inclusiveEnd_ is *true*, set _endCondition_ be _currentYieldingValue_ > _end_.
+                                1. Else set _endCondition_ be _currentYieldingValue_ >= _end_.
+                            1. Else,
+                                1. If _inclusiveEnd_ is *true*, set _endCondition_ be _end_ > _currentYieldingValue_.
+                                1. Else set _endCondition_ be _end_ >= _currentYieldingValue_.
+                            1. If _endCondition_ is *true*, return *undeﬁned*.
+                            1. Perform ? Yield(_currentYieldingValue_).
+                        1. Return *undefined*.
+                    1. Let _iterator_ be CreateIteratorFromClosure(_closure_, *"%NumericRangeIteratorPrototype%"*, %NumericRangeIteratorPrototype%).
+                    1. Return _iterator_.
+                </emu-alg>
+            </emu-clause>
+
+            <emu-clause id="sec-%numericrangeiteratorprototype%-object">
+                <h1>The %NumericRangeIteratorPrototype% Object</h1>
+                <p>The <dfn>%NumericRangeIteratorPrototype%</dfn> object:</p>
+                <ul>
+                    <li>has properties that are inherited by all NumericRangeIterator Objects.</li>
+                    <li>is an ordinary object.</li>
+                    <li>has a [[Prototype]] internal slot whose value is %IteratorPrototype%.</li>
+                    <li>has the following properties:</li>
+                </ul>
+
+                <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-next">
+                    <h1>%NumericRangeIterator%.next ( )</h1>
+                    <emu-alg>
+                        1. Return ? GeneratorResume(*this* value, ~empty~, *"%NumericRangeIteratorPrototype%"*).
+                    </emu-alg>
+                </emu-clause>
+                <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag">
+                    <h1>%NumericRangeIteratorPrototype%.[@@toStringTag]</h1>
+                    <p>The initial value of the @@toStringTag property is the String value `"NumericRangeIterator"`.</p>
+                    <p>This property has the attributes { [[Writable]]: *false*, [[Enumerable]]: *false*, [[Configurable]]: *true* }.</p>
+                </emu-clause>
+            </emu-clause>
         </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive">
-        <h1>%NumericRangeIteratorPrototype%.inclusive</h1>
-        <p>%NumericRangeIteratorPrototype%.inclusive is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-inclusive-getter">
-            <h1>get %NumericRangeIteratorPrototype%.isEnclusiveEnd</h1>
-            <emu-alg>
-                1. Perform ? RequireInternalSlot(*this*, [[inclusiveEnd]]).
-                1. Return *this*.[[inclusiveEnd]].
-            </emu-alg>
-        </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-step">
-        <h1>%NumericRangeIteratorPrototype%.step</h1>
-        <p>%NumericRangeIteratorPrototype%.step is an accessor property with attributes { [[Enumerable]]: false, [[Configurable]]: *true*}. The [[Get]] attribute is defined as follows:</p>
-        <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-step-getter">
-            <h1>get %NumericRangeIteratorPrototype%.step</h1>
-            <emu-alg>
-                1. Perform ? RequireInternalSlot(*this*, [[step]]).
-                1. Return *this*.[[step]].
-            </emu-alg>
-        </emu-clause>
-    </emu-clause>
-    <emu-clause id="sec-numericrangeiterator-slots">
-        <h1>Internal slots</h1>
-        <emu-table id="sec-numericrangeiterator-internal-slots" caption="Internal slots">
-            <table>
-            <thead>
-            <tr>
-            <td>Internal slot</td>
-            <td>Description</td>
-            </tr>
-            </thead>
-            <tbody>
-            <tr><td>[[start]]</td><td>The range starts start.</td></tr>
-            <tr><td>[[end]]</td><td>The range ends to.</td></tr>
-            <tr><td>[[step]]</td><td>The range step size.</td></tr>
-            <tr><td>[[inclusiveEnd]]</td><td>Boolean. If the end is inclusive.</td></tr>
-            </tbody>
-            </table>
-        </emu-table>
     </emu-clause>
 </emu-clause>

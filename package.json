@@ -3,7 +3,7 @@
     "name": "range",
     "description": "A repository for ECMAScript range proposal.",
     "scripts": {
-        "start": "ecmarkup spec.emu index.html --watch --lint-spec",
+        "start": "ecmarkup spec.emu index.html --load-biblio @tc39/ecma262-biblio --watch --lint-spec",
         "build": "ecmarkup spec.emu index.html --load-biblio @tc39/ecma262-biblio --lint-spec --strict",
         "test": "jest --coverage --coverage-provider=v8"
     },
@@ -17,6 +17,7 @@
         "@tc39/ecma262-biblio": "2.1.2481",
         "@types/jest": "^29.2.3",
         "core-js": "^3.26.1",
+        "core-js-builder": "^3.26.1",
         "ecmarkup": "^16.0.0",
         "jest": "^29.3.1",
         "prettier": "^2.8.0"
