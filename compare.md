@@ -8,16 +8,16 @@ Based on the document and REPL of other languages, might have error in it.
 
 ### Syntax
 
-| Language           | Syntax                                                                   |
-| ------------------ | ------------------------------------------------------------------------ |
-| This proposal      | `Number.range(start, to, step?)` <br /> `Bigint.range(start, to, step?)` |
-| Python             | `range(start, to, step?)` <br /> `range(to)`                             |
-| Java               | `IntStream.range(start, to)` <br /> `LongStream.range(start, to)`        |
-| Swift (`Range`)    | `start...to` <br /> `start..<to`                                         |
-| Swift (`StrideTo`) | `stride(from: var_start, to: var_to, by: var_step)`                      |
-| Rust               | `(start..to)` <br /> `(start..=to)`                                      |
-| Haskell            | `[start,next_element_to_infer_step..to]`                                 |
-| F#                 | `seq { start .. step .. to }`                                            |
+| Language           | Syntax                                                                     |
+| ------------------ | -------------------------------------------------------------------------- |
+| This proposal      | `Iterator.range(start, to, step?)` <br /> `Bigint.range(start, to, step?)` |
+| Python             | `range(start, to, step?)` <br /> `range(to)`                               |
+| Java               | `IntStream.range(start, to)` <br /> `LongStream.range(start, to)`          |
+| Swift (`Range`)    | `start...to` <br /> `start..<to`                                           |
+| Swift (`StrideTo`) | `stride(from: var_start, to: var_to, by: var_step)`                        |
+| Rust               | `(start..to)` <br /> `(start..=to)`                                        |
+| Haskell            | `[start,next_element_to_infer_step..to]`                                   |
+| F#                 | `seq { start .. step .. to }`                                              |
 
 Haskell: The `[start..to]` syntax produce a list. Due to the lazy evaluation of Haskell, it range semantics is different than most of languages.
 
@@ -58,7 +58,7 @@ Define:
 -   This proposal: It doesn't have it own class currently but it have it's own prototype `%RangeIteratorPrototype%` and have unique getters on it.
 -   Java: The base interface of `IntStream` (`Stream`) doesn't implements `Iterator<T>` protocol but have a `iterator()` methods that returns an Iterator. Must use with `for(int i: range.iterator())`
 -   Swift (`StrideTo`): According to the [document of `StrideTo`](https://developer.apple.com/documentation/swift/strideto/1689269-lazy), laziness is opt-in.
--   Rust: See https://github.com/tc39/proposal-Number.range/issues/17#issuecomment-642064127
+-   Rust: See <https://github.com/tc39/proposal-Number.range/issues/17#issuecomment-642064127>
 -   Haskell: No Iterator / Iterable. The laziness is in the language. `The idea of a side-effecting iterator is antithetical to the Haskell Way.` (start StackOverflow)
 
 ### Immutable (`start`, `to` and `step` cannot be changed)

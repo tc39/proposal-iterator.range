@@ -1,21 +1,11 @@
 type Infinity = number
-interface RangeIterator<T extends number | bigint>
-    extends Iterator<T, void, void> {
-    // This property is not in the spec yet.
-    [Symbol.iterator](): RangeIterator<T>
-    readonly [Symbol.toStringTag]: "RangeIterator"
-    readonly start: T
-    readonly end: T | Infinity
-    readonly step: T
-    readonly inclusive: boolean
+declare var Iterator: {
+    new (): Iterator<never, void, void>
+    prototype: Iterator<never, void, void>
+    range(start: number, end: number, option: number | NumericRangeOptions<number>): IterableIterator<number>
+    range(start: bigint, end: bigint | Infinity, option: bigint | NumericRangeOptions<bigint>): IterableIterator<bigint>
 }
-type RangeFunction<T extends number | bigint> = {
-    range(
-        start: T,
-        end: T | Infinity,
-        option?: T | { step?: T; inclusive?: boolean }
-    ): RangeIterator<T>
-    range(start: T, end: T | Infinity, step?: T): RangeIterator<T>
+interface NumericRangeOptions<T extends bigint | number> {
+    step?: number | number
+    inclusive?: boolean
 }
-interface NumberConstructor extends RangeFunction<number> {}
-interface BigIntConstructor extends RangeFunction<bigint> {}
