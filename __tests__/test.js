@@ -54,12 +54,12 @@ test("Be an iterator", () => {
 })
 
 test("NaN", () => {
-    expect(that(Iterator.range(NaN, 0))).toMatchInlineSnapshot(`""`)
-    expect(that(Iterator.range(0, NaN))).toMatchInlineSnapshot(`""`)
-    expect(that(Iterator.range(NaN, NaN))).toMatchInlineSnapshot(`""`)
+    expect(()=>(Iterator.range(NaN, 0))).toThrowError()
+    expect(()=>(Iterator.range(0, NaN))).toThrowError()
+    expect(()=>(Iterator.range(NaN, NaN))).toThrowError()
 
-    expect(that(Iterator.range(0, 0, { step: NaN }))).toMatchInlineSnapshot(`""`)
-    expect(that(Iterator.range(0, 5, NaN))).toMatchInlineSnapshot(`""`)
+    expect(()=>(Iterator.range(0, 0, { step: NaN }))).toThrowError()
+    expect(()=>(Iterator.range(0, 5, NaN))).toThrowError()
 })
 
 test("Step infer", () => {

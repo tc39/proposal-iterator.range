@@ -32,15 +32,13 @@ It should only be used to collect developers feedback about the APIs.`)
      * @param {T} one
      */
     function* NumericRangeIteratorObject(start, end, step, inclusiveEnd, zero, one) {
-        if (isNaN(start)) return
-        if (isNaN(end)) return
-        if (isNaN(step)) return
         let ifIncrease = end > start
         let ifStepIncrease = step > zero
         if (ifIncrease !== ifStepIncrease) return
         let hitsEnd = false
         let currentCount = zero
-        while (hitsEnd === false) { // @ts-ignore
+        while (hitsEnd === false) {
+            // @ts-ignore
             let currentYieldingValue = start + step * currentCount
             if (currentYieldingValue === end) hitsEnd = true // @ts-ignore
             currentCount = currentCount + one
@@ -76,6 +74,7 @@ It should only be used to collect developers feedback about the APIs.`)
          * @param {(typeof SpecValue)[keyof typeof SpecValue]} type
          */ // @ts-ignore
         constructor(start, end, option, type) {
+            if (isNaN(start) || isNaN(end)) throw new RangeError()
             /** @type {T} */ let zero
             /** @type {T} */ let one
             if (type === SpecValue.NumberRange) {
@@ -103,6 +102,7 @@ It should only be used to collect developers feedback about the APIs.`)
             else if (type === SpecValue.NumberRange && typeof option === "number") step = option
             else if (type === SpecValue.BigIntRange && typeof option === "bigint") step = option
             else throw new TypeError()
+            if (isNaN(step)) throw new RangeError()
             if (step === undefined || step === null) {
                 if (ifIncrease) step = one // @ts-ignore
                 else step = -one
