@@ -77,7 +77,7 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 See [tests](./__tests__/test.js) to learn about more usages.
 
 ```js
-for (const i of BigInt.range(0n, 43n)) console.log(i) // 0n to 42n
+for (const i of Iterator.range(0n, 43n)) console.log(i) // 0n to 42n
 
 Iterator.range(0, Infinity)
     .take(1000)
