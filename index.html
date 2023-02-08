@@ -1229,33 +1229,123 @@ window.addEventListener('beforeunload', () => {
 });
 
 'use strict';
-let decimalBullet = Array.from({ length: 100 }, (a, i) => '' + (i + 1));
-let alphaBullet = Array.from({ length: 26 }, (a, i) => String.fromCharCode('a'.charCodeAt(0) + i));
 
-// prettier-ignore
-let romanBullet = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx', 'xxi', 'xxii', 'xxiii', 'xxiv', 'xxv'];
-// prettier-ignore
-let bullets = [decimalBullet, alphaBullet, romanBullet, decimalBullet, alphaBullet, romanBullet];
+// Manually prefix algorithm step list items with hidden counter representations
+// corresponding with their markers so they get selected and copied with content.
+// We read list-style-type to avoid divergence with the style sheet, but
+// for efficiency assume that all lists at the same nesting depth use the same
+// style (except for those associated with replacement steps).
+// We also precompute some initial items for each supported style type.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/
 
-function addStepNumberText(ol, parentIndex) {
-  for (let i = 0; i < ol.children.length; ++i) {
-    let child = ol.children[i];
-    let index = parentIndex.concat([i]);
-    let applicable = bullets[Math.min(index.length - 1, 5)];
-    let span = document.createElement('span');
-    span.textContent = (applicable[i] || '?') + '. ';
-    span.style.fontSize = '0';
-    span.setAttribute('aria-hidden', 'true');
-    child.prepend(span);
-    let sublist = child.querySelector('ol');
-    if (sublist != null) {
-      addStepNumberText(sublist, index);
+const lowerLetters = Array.from({ length: 26 }, (_, i) =>
+  String.fromCharCode('a'.charCodeAt(0) + i)
+);
+// Implement the lower-alpha 'alphabetic' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-alphabetic
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#alphabetic-system
+const lowerAlphaTextForIndex = i => {
+  let S = '';
+  for (const N = lowerLetters.length; i >= 0; i--) {
+    S = lowerLetters[i % N] + S;
+    i = Math.floor(i / N);
+  }
+  return S;
+};
+
+const weightedLowerRomanSymbols = Object.entries({
+  m: 1000,
+  cm: 900,
+  d: 500,
+  cd: 400,
+  c: 100,
+  xc: 90,
+  l: 50,
+  xl: 40,
+  x: 10,
+  ix: 9,
+  v: 5,
+  iv: 4,
+  i: 1,
+});
+// Implement the lower-roman 'additive' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-numeric
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#additive-system
+const lowerRomanTextForIndex = i => {
+  let value = i + 1;
+  let S = '';
+  for (const [symbol, weight] of weightedLowerRomanSymbols) {
+    if (!value) break;
+    if (weight > value) continue;
+    const reps = Math.floor(value / weight);
+    S += symbol.repeat(reps);
+    value -= weight * reps;
+  }
+  return S;
+};
+
+// Memoize pure index-to-text functions with an exposed cache for fast retrieval.
+const makeCounter = (pureGetTextForIndex, precomputeCount = 30) => {
+  const cache = Array.from({ length: precomputeCount }, (_, i) => pureGetTextForIndex(i));
+  const getTextForIndex = i => {
+    if (i >= cache.length) cache[i] = pureGetTextForIndex(i);
+    return cache[i];
+  };
+  return { getTextForIndex, cache };
+};
+
+const counterByStyle = {
+  __proto__: null,
+  decimal: makeCounter(i => String(i + 1)),
+  'lower-alpha': makeCounter(lowerAlphaTextForIndex),
+  'upper-alpha': makeCounter(i => lowerAlphaTextForIndex(i).toUpperCase()),
+  'lower-roman': makeCounter(lowerRomanTextForIndex),
+  'upper-roman': makeCounter(i => lowerRomanTextForIndex(i).toUpperCase()),
+};
+const fallbackCounter = makeCounter(() => '?');
+const counterByDepth = [];
+
+function addStepNumberText(
+  ol,
+  depth = 0,
+  special = [...ol.classList].some(c => c.startsWith('nested-'))
+) {
+  let counter = !special && counterByDepth[depth];
+  if (!counter) {
+    const counterStyle = getComputedStyle(ol)['list-style-type'];
+    counter = counterByStyle[counterStyle];
+    if (!counter) {
+      console.warn('unsupported list-style-type', {
+        ol,
+        counterStyle,
+        id: ol.closest('[id]')?.getAttribute('id'),
+      });
+      counterByStyle[counterStyle] = fallbackCounter;
+      counter = fallbackCounter;
+    }
+    if (!special) {
+      counterByDepth[depth] = counter;
     }
   }
+  const { cache, getTextForIndex } = counter;
+  let i = (Number(ol.getAttribute('start')) || 1) - 1;
+  for (const li of ol.children) {
+    const marker = document.createElement('span');
+    marker.textContent = `${i < cache.length ? cache[i] : getTextForIndex(i)}. `;
+    marker.setAttribute('aria-hidden', 'true');
+    li.prepend(marker);
+    for (const sublist of li.querySelectorAll(':scope > ol')) {
+      addStepNumberText(sublist, depth + 1, special);
+    }
+    i++;
+  }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('emu-alg > ol').forEach(ol => {
-    addStepNumberText(ol, []);
+    addStepNumberText(ol);
   });
 });
 
@@ -1450,6 +1540,10 @@ emu-alg ol.nested-lots ol {
   list-style-type: lower-roman;
 }
 
+emu-alg [aria-hidden=true] {
+  font-size: 0;
+}
+
 emu-eqn {
   display: block;
   margin-left: 4em;
@@ -1501,7 +1595,7 @@ emu-note > div.note-contents > p:last-of-type {
   margin-bottom: 0;
 }
 
-emu-table td code {
+emu-table:not(.code) td code {
   white-space: normal;
 }
 
@@ -2525,7 +2619,7 @@ li.menu-search-result-term:before {
 </ul></div><div id="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; stroke:currentColor" viewBox="0 0 120 120">
       <title>Menu</title>
       <path stroke-width="10" stroke-linecap="round" d="M30,60 h60  M30,30 m0,5 h60  M30,90 m0,-5 h60"></path>
-    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-control-abstraction-objects" title="Control Abstraction Objects"><span class="secnum">27</span> Control Abstraction Objects</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-iteration" title="Iteration"><span class="secnum">27.1</span> Iteration</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-iterator-constructor" title="Properties of the Iterator Constructor"><span class="secnum">27.1.2</span> Properties of the Iterator Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-iterator.range" title="Iterator.range ( start, end, option )"><span class="secnum">27.1.2.1</span> Iterator.range ( <var>start</var>, <var>end</var>, <var>option</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-numeric-range-iterator-object" title="The NumericRangeIterator Object"><span class="secnum">27.1.3</span> The <dfn>NumericRangeIterator</dfn> Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-create-numeric-range-iterator" title="CreateNumericRangeIterator ( start, end, option, type )"><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )</a></li><li><span class="item-toggle">◢</span><a href="#sec-%numericrangeiteratorprototype%-object" title="The %NumericRangeIteratorPrototype% Object"><span class="secnum">27.1.3.2</span> The %NumericRangeIteratorPrototype% Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-next" title="%NumericRangeIterator%.next ( )"><span class="secnum">27.1.3.2.1</span> %NumericRangeIterator%.next ( )</a></li><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag" title="%NumericRangeIteratorPrototype%.[@@toStringTag]"><span class="secnum">27.1.3.2.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 1 Draft / January 16, 2023</h1><h1 class="title">Range proposal</h1>
+    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-control-abstraction-objects" title="Control Abstraction Objects"><span class="secnum">27</span> Control Abstraction Objects</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-iteration" title="Iteration"><span class="secnum">27.1</span> Iteration</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-iterator-constructor" title="Properties of the Iterator Constructor"><span class="secnum">27.1.2</span> Properties of the Iterator Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-iterator.range" title="Iterator.range ( start, end, option )"><span class="secnum">27.1.2.1</span> Iterator.range ( <var>start</var>, <var>end</var>, <var>option</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-numeric-range-iterator-object" title="The NumericRangeIterator Object"><span class="secnum">27.1.3</span> The <dfn>NumericRangeIterator</dfn> Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-create-numeric-range-iterator" title="CreateNumericRangeIterator ( start, end, option, type )"><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )</a></li><li><span class="item-toggle">◢</span><a href="#sec-%numericrangeiteratorprototype%-object" title="The %NumericRangeIteratorPrototype% Object"><span class="secnum">27.1.3.2</span> The %NumericRangeIteratorPrototype% Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-next" title="%NumericRangeIterator%.next ( )"><span class="secnum">27.1.3.2.1</span> %NumericRangeIterator%.next ( )</a></li><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag" title="%NumericRangeIteratorPrototype%.[@@toStringTag]"><span class="secnum">27.1.3.2.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 1 Draft / February 8, 2023</h1><h1 class="title">Range proposal</h1>
 
 <emu-clause id="sec-control-abstraction-objects" number="27">
     <h1><span class="secnum">27</span> Control Abstraction Objects</h1>
@@ -2550,7 +2644,7 @@ li.menu-search-result-term:before {
                 <h1><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>option</var>, <var>type</var> )</h1>
                 <p>The abstract operation CreateNumericRangeIterator takes arguments <var>start</var> (a Number or a BigInt), <var>end</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>), <var>option</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>), and <var>type</var> (<emu-const>number-range</emu-const> or <emu-const>bigint-range</emu-const>). It performs the following steps when called:</p>
                 <emu-alg><ol><li>If <var>start</var> is <emu-val>NaN</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>end</var> is <emu-val>NaN</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>type</var> is <emu-const>number-range</emu-const>, then<ol><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: <var>start</var> <emu-xref href="#sec-ecmascript-language-types-number-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type">is a Number</a></emu-xref>.</li><li>If <var>end</var> <emu-xref href="#sec-ecmascript-language-types-number-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type">is not a Number</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>zero</var> be <emu-val>0</emu-val><sub>ℤ</sub>.</li><li>Let <var>one</var> be <emu-val>1</emu-val><sub>ℤ</sub>.</li></ol></li><li>Else,<ol><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: <var>start</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is a BigInt</a></emu-xref>.
-                        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">Allowing all kinds of number (bigint, decimals, ...) to range from a <emu-xref href="#finite"><a href="https://tc39.es/ecma262/#finite">finite</a></emu-xref> number to infinity.</div></emu-note></li><li>If <var>end</var> is not <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val> and <var>end</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is not a BigInt</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>zero</var> be <emu-val>0n</emu-val><sub>ℤ</sub>.</li><li>Let <var>one</var> be <emu-val>1n</emu-val><sub>ℤ</sub>.</li></ol></li><li>If <var>start</var> is <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>ifIncrease</var> be end &gt; start.</li><li>Let <var>inclusiveEnd</var> be <emu-val>false</emu-val>.</li><li>If <var>option</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, let <var>step</var> be <emu-val>undefined</emu-val>.</li><li>Else if <var>option</var> <emu-xref href="#sec-object-type"><a href="https://tc39.es/ecma262/#sec-object-type">is an Object</a></emu-xref>, then<ol><li>Let <var>step</var> be ?&nbsp;<emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "step").</li><li>Let <var>inclusiveEnd</var> be <emu-xref aoid="ToBoolean"><a href="https://tc39.es/ecma262/#sec-toboolean">ToBoolean</a></emu-xref>(? <emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "inclusive")).</li></ol></li><li>Else if <var>type</var> is <emu-const>number-range</emu-const> and <var>option</var> <emu-xref href="#sec-ecmascript-language-types-number-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type">is a Number</a></emu-xref>, let <var>step</var> be <var>option</var>.</li><li>Else if <var>type</var> is <emu-const>bigint-range</emu-const> and <var>option</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is a BigInt</a></emu-xref>, let <var>step</var> be <var>option</var>.</li><li>Else, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, then<ol><li>If <var>ifIncrease</var> is <emu-val>true</emu-val>, let <var>step</var> be <var>one</var>.</li><li>Else let <var>step</var> be -<var>one</var>.</li></ol></li><li>If <var>step</var> is <emu-val>NaN</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>type</var> is <emu-const>number-range</emu-const> and <var>step</var> <emu-xref href="#sec-ecmascript-language-types-number-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type">is not a Number</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Else if <var>type</var> is <emu-const>bigint-range</emu-const> and <var>step</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is not a BigInt</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>+∞</emu-val> or <emu-val>-∞</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>step</var> is <var>zero</var> and <var>start</var> is not equal to <var>end</var>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>closure</var> be a new <emu-xref href="#sec-abstract-closure"><a href="https://tc39.es/ecma262/#sec-abstract-closure">Abstract Closure</a></emu-xref> with no parameters that captures <var>start</var>, <var>end</var>, <var>step</var>, <var>inclusiveEnd</var>, <var>zero</var>, <var>one</var> and performs the following steps when called:<ol><li>Let <var>ifIncrease</var> be <var>end</var> &gt; <var>start</var>.</li><li>Let <var>ifStepIncrease</var> be <var>step</var> &gt; <var>zero</var>.</li><li>If <var>ifIncrease</var> is not equal to <var>ifStepIncrease</var>, return <emu-val>undeﬁned</emu-val>.</li><li>Let <var>hitsEnd</var> be <emu-val>false</emu-val>.</li><li>Let <var>currentCount</var> be <var>zero</var>.</li><li>NOTE: You can debug these steps at https://tc39.es/proposal-Number.range/playground.html .</li><li>Repeat, while <var>hitsEnd</var> is <emu-val>false</emu-val>,<ol><li>Let <var>currentYieldingValue</var> be <var>start</var> + (<var>step</var> * <var>currentCount</var>).</li><li>If <var>currentYieldingValue</var> equal to <var>end</var>, Set <var>hitsEnd</var> to <emu-val>true</emu-val>.</li><li>Set <var>currentCount</var> to <var>currentCount</var> + <var>one</var>.
+                        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">Allowing all kinds of number (bigint, decimals, ...) to range from a <emu-xref href="#finite"><a href="https://tc39.es/ecma262/#finite">finite</a></emu-xref> number to infinity.</div></emu-note></li><li>If <var>end</var> is not <emu-val>+∞</emu-val><sub>𝔽</sub> or <emu-val>-∞</emu-val><sub>𝔽</sub> and <var>end</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is not a BigInt</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>zero</var> be <emu-val>0n</emu-val><sub>ℤ</sub>.</li><li>Let <var>one</var> be <emu-val>1n</emu-val><sub>ℤ</sub>.</li></ol></li><li>If <var>start</var> is <emu-val>+∞</emu-val><sub>𝔽</sub> or <emu-val>-∞</emu-val><sub>𝔽</sub>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>ifIncrease</var> be end &gt; start.</li><li>Let <var>inclusiveEnd</var> be <emu-val>false</emu-val>.</li><li>If <var>option</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, let <var>step</var> be <emu-val>undefined</emu-val>.</li><li>Else if <var>option</var> <emu-xref href="#sec-object-type"><a href="https://tc39.es/ecma262/#sec-object-type">is an Object</a></emu-xref>, then<ol><li>Let <var>step</var> be ?&nbsp;<emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "step").</li><li>Let <var>inclusiveEnd</var> be <emu-xref aoid="ToBoolean"><a href="https://tc39.es/ecma262/#sec-toboolean">ToBoolean</a></emu-xref>(? <emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>option</var>, "inclusive")).</li></ol></li><li>Else if <var>type</var> is <emu-const>number-range</emu-const> and <var>option</var> <emu-xref href="#sec-ecmascript-language-types-number-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type">is a Number</a></emu-xref>, let <var>step</var> be <var>option</var>.</li><li>Else if <var>type</var> is <emu-const>bigint-range</emu-const> and <var>option</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is a BigInt</a></emu-xref>, let <var>step</var> be <var>option</var>.</li><li>Else, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, then<ol><li>If <var>ifIncrease</var> is <emu-val>true</emu-val>, let <var>step</var> be <var>one</var>.</li><li>Else let <var>step</var> be -<var>one</var>.</li></ol></li><li>If <var>step</var> is <emu-val>NaN</emu-val>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>type</var> is <emu-const>number-range</emu-const> and <var>step</var> <emu-xref href="#sec-ecmascript-language-types-number-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type">is not a Number</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Else if <var>type</var> is <emu-const>bigint-range</emu-const> and <var>step</var> <emu-xref href="#sec-ecmascript-language-types-bigint-type"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type">is not a BigInt</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>step</var> is <emu-val>+∞</emu-val><sub>𝔽</sub> or <emu-val>-∞</emu-val><sub>𝔽</sub>, throw a <emu-val>RangeError</emu-val> exception.</li><li>If <var>step</var> is <var>zero</var> and <var>start</var> is not equal to <var>end</var>, throw a <emu-val>RangeError</emu-val> exception.</li><li>Let <var>closure</var> be a new <emu-xref href="#sec-abstract-closure"><a href="https://tc39.es/ecma262/#sec-abstract-closure">Abstract Closure</a></emu-xref> with no parameters that captures <var>start</var>, <var>end</var>, <var>step</var>, <var>inclusiveEnd</var>, <var>zero</var>, <var>one</var> and performs the following steps when called:<ol><li>Let <var>ifIncrease</var> be <var>end</var> &gt; <var>start</var>.</li><li>Let <var>ifStepIncrease</var> be <var>step</var> &gt; <var>zero</var>.</li><li>If <var>ifIncrease</var> is not equal to <var>ifStepIncrease</var>, return <emu-val>undeﬁned</emu-val>.</li><li>Let <var>hitsEnd</var> be <emu-val>false</emu-val>.</li><li>Let <var>currentCount</var> be <var>zero</var>.</li><li>NOTE: You can debug these steps at https://tc39.es/proposal-Number.range/playground.html .</li><li>Repeat, while <var>hitsEnd</var> is <emu-val>false</emu-val>,<ol><li>Let <var>currentYieldingValue</var> be <var>start</var> + (<var>step</var> * <var>currentCount</var>).</li><li>If <var>currentYieldingValue</var> equal to <var>end</var>, Set <var>hitsEnd</var> to <emu-val>true</emu-val>.</li><li>Set <var>currentCount</var> to <var>currentCount</var> + <var>one</var>.
                             NOTE: Prevent value overflow.</li><li>Let <var>endCondition</var> be <emu-val>false</emu-val>.</li><li>If <var>ifIncrease</var> is <emu-val>true</emu-val>, then<ol><li>If <var>inclusiveEnd</var> is <emu-val>true</emu-val>, set <var>endCondition</var> be <var>currentYieldingValue</var> &gt; <var>end</var>.</li><li>Else set <var>endCondition</var> be <var>currentYieldingValue</var> &gt;= <var>end</var>.</li></ol></li><li>Else,<ol><li>If <var>inclusiveEnd</var> is <emu-val>true</emu-val>, set <var>endCondition</var> be <var>end</var> &gt; <var>currentYieldingValue</var>.</li><li>Else set <var>endCondition</var> be <var>end</var> &gt;= <var>currentYieldingValue</var>.</li></ol></li><li>If <var>endCondition</var> is <emu-val>true</emu-val>, return <emu-val>undeﬁned</emu-val>.</li><li>Perform ?&nbsp;<emu-xref aoid="Yield"><a href="https://tc39.es/ecma262/#sec-yield">Yield</a></emu-xref>(<var>currentYieldingValue</var>).</li></ol></li><li>Return <emu-val>undefined</emu-val>.</li></ol></li><li>Let <var>iterator</var> be <emu-xref aoid="CreateIteratorFromClosure"><a href="https://tc39.es/ecma262/#sec-createiteratorfromclosure">CreateIteratorFromClosure</a></emu-xref>(<var>closure</var>, <emu-val>"%NumericRangeIteratorPrototype%"</emu-val>, <emu-xref href="#sec-%numericrangeiteratorprototype%-object" id="_ref_3"><a href="#sec-%numericrangeiteratorprototype%-object">%NumericRangeIteratorPrototype%</a></emu-xref>).</li><li>Return <var>iterator</var>.</li></ol></emu-alg>
             </emu-clause>
 
