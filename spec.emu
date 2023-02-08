@@ -56,10 +56,10 @@ contributors: Jack Works
                     1. Else,
                         1. Assert: _start_ is a BigInt.
                         <emu-note type="editor">Allowing all kinds of number (bigint, decimals, ...) to range from a finite number to infinity.</emu-note>
-                        1. If _end_ is not *+∞* or *-∞* and _end_ is not a BigInt, throw a *TypeError* exception.
+                        1. If _end_ is not *+∞*<sub>𝔽</sub> or *-∞*<sub>𝔽</sub> and _end_ is not a BigInt, throw a *TypeError* exception.
                         1. Let _zero_ be *0n*<sub>ℤ</sub>.
                         1. Let _one_ be *1n*<sub>ℤ</sub>.
-                    1. If _start_ is *+∞* or *-∞*, throw a *RangeError* exception.
+                    1. If _start_ is *+∞*<sub>𝔽</sub> or *-∞*<sub>𝔽</sub>, throw a *RangeError* exception.
                     1. Let _ifIncrease_ be end > start.
                     1. Let _inclusiveEnd_ be *false*.
                     1. If _option_ is *undefined* or *null*, let _step_ be *undefined*.
@@ -75,7 +75,7 @@ contributors: Jack Works
                     1. If _step_ is *NaN*, throw a *RangeError* exception.
                     1. If _type_ is ~number-range~ and _step_ is not a Number, throw a *TypeError* exception.
                     1. Else if _type_ is ~bigint-range~ and _step_ is not a BigInt, throw a *TypeError* exception.
-                    1. If _step_ is *+∞* or *-∞*, throw a *RangeError* exception.
+                    1. If _step_ is *+∞*<sub>𝔽</sub> or *-∞*<sub>𝔽</sub>, throw a *RangeError* exception.
                     1. If _step_ is _zero_ and _start_ is not equal to _end_, throw a *RangeError* exception.
                     1. Let _closure_ be a new Abstract Closure with no parameters that captures _start_, _end_, _step_, _inclusiveEnd_, _zero_, _one_ and performs the following steps when called:
                         1. Let _ifIncrease_ be _end_ > _start_.
