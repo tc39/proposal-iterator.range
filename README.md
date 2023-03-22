@@ -8,17 +8,17 @@
 
 This proposal describes adding a `Iterator.range` to the JavaScript.
 
-See the rendered spec at [here](https://tc39.es/proposal-Number.range/).
+See the rendered spec at [here](https://tc39.es/proposal-iterator.range/).
 
 [Compare with other languages](./compare.md) (Work in progress)
 
-[Playground](https://tc39.es/proposal-Number.range/playground.html)
+[Playground](https://tc39.es/proposal-iterator.range/playground.html)
 
 ## Polyfill
 
 -   A polyfill is available in the [core-js](https://github.com/zloirock/core-js) library. You can find it in the [ECMAScript proposals section](https://github.com/zloirock/core-js/#numberrange).
 
--   In the proposal repo is available a [a step-to-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-Number.range/branch/main/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-Number.range) so you can verify if there is a bug in the specification by the debugger.
+-   In the proposal repo is available a [a step-to-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-iterator.range/branch/main/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-iterator.range) so you can verify if there is a bug in the specification by the debugger.
 
 ## Motivation
 
@@ -56,21 +56,6 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 -   String Sequence (a, b, c, d, ...)
 -   Magic
 -   -   E.g. `if (x in Iterator.range(0, 10))` (Kotlin have this feature)
-
-### Discussions
-
-#### Discussions in Issue
-
-##### Important semantics discussion
-
--   [#22: Class or plain object](https://github.com/tc39/proposal-Number.range/issues/22)
-
-##### Others
-
--   [#13: Integration with Slice notation proposal](https://github.com/tc39/proposal-Number.range/issues/13)
--   [#18: Alias Number.range(end) for Number.range(0, end)](https://github.com/tc39/proposal-Number.range/issues/18)
--   [#19: API design (move to NumberRangeIterator, BigIntRangeIterator or Iterator.range)](https://github.com/tc39/proposal-Number.range/issues/19)
--   [#25: Possible options](https://github.com/tc39/proposal-Number.range/issues/25)
 
 # Examples
 
