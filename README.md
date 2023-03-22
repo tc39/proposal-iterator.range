@@ -4,7 +4,7 @@
 
 **Author**: Jack Works
 
-**Stage**: 1
+**Stage**: 2
 
 This proposal describes adding a `Iterator.range` to the JavaScript.
 
