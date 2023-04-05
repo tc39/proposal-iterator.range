@@ -6,7 +6,7 @@
 
 **Stage**: 2
 
-This proposal describes adding `Iterator.range` to the JavaScript.
+This proposal describes adding `Iterator.range` to JavaScript.
 
 See the rendered spec at [here](https://tc39.es/proposal-iterator.range/).
 
@@ -18,7 +18,7 @@ See the rendered spec at [here](https://tc39.es/proposal-iterator.range/).
 
 -   A polyfill is available in the [core-js](https://github.com/zloirock/core-js) library. You can find it in the [ECMAScript proposals section](https://github.com/zloirock/core-js/#numberrange).
 
--   In the proposal repo is available [a step-by-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-iterator.range/branch/main/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-iterator.range) so you can verify if there is a bug in the specification using the debugger.
+-   In the proposal repo a [step-by-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-iterator.range/branch/main/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-iterator.range) is available so you can verify if there is a bug in the specification using the debugger.
 
 ## Motivation
 
