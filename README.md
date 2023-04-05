@@ -6,7 +6,7 @@
 
 **Stage**: 2
 
-This proposal describes adding a `Iterator.range` to the JavaScript.
+This proposal describes adding `Iterator.range` to the JavaScript.
 
 See the rendered spec at [here](https://tc39.es/proposal-iterator.range/).
 
