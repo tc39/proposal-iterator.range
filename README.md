@@ -18,7 +18,7 @@ See the rendered spec at [here](https://tc39.es/proposal-iterator.range/).
 
 -   A polyfill is available in the [core-js](https://github.com/zloirock/core-js) library. You can find it in the [ECMAScript proposals section](https://github.com/zloirock/core-js/#numberrange).
 
--   In the proposal repo is available a [a step-to-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-iterator.range/branch/main/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-iterator.range) so you can verify if there is a bug in the specification by the debugger.
+-   In the proposal repo is available [a step-by-step implementation of the proposal](./polyfill.js) [![codecov](https://codecov.io/gh/tc39/proposal-iterator.range/branch/main/graph/badge.svg)](https://codecov.io/gh/tc39/proposal-iterator.range) so you can verify if there is a bug in the specification using the debugger.
 
 ## Motivation
 
@@ -55,7 +55,7 @@ Tons of libraries providing a range: math.js, lodash, underscore.js, ramda, d3, 
 -   New Syntax
 -   String Sequence (a, b, c, d, ...)
 -   Magic
--   -   E.g. `if (x in Iterator.range(0, 10))` (Kotlin have this feature)
+-   -   E.g. `if (x in Iterator.range(0, 10))` (Kotlin has this feature)
 
 # Examples
 
