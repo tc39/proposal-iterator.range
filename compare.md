@@ -56,7 +56,7 @@ Define:
 | F#                 | Instantiation(`seq<'T>`)  | 🔢 Iterable               | ✅   |
 
 -   This proposal: It doesn't have its own class currently but it has its own prototype `%RangeIteratorPrototype%` and has unique getters on it.
--   Java: The base interface of `IntStream` (`Stream`) doesn't implement `Iterator<T>` protocol but has a `iterator()` methods that returns an Iterator. Must be used with `for(int i: range.iterator())`
+-   Java: The base interface of `IntStream` (`Stream`) doesn't implement `Iterator<T>` protocol but has a `iterator()` method that returns an Iterator. Must be used with `for(int i: range.iterator())`
 -   Swift (`StrideTo`): According to the [documentation of `StrideTo`](https://developer.apple.com/documentation/swift/strideto/1689269-lazy), laziness is opt-in.
 -   Rust: See <https://github.com/tc39/proposal-Number.range/issues/17#issuecomment-642064127>
 -   Haskell: No Iterator / Iterable. The laziness is in the language. `The idea of a side-effecting iterator is antithetical to the Haskell Way.` (start StackOverflow)
