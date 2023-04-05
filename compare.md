@@ -19,7 +19,7 @@ Based on the documentation and REPL of other languages, might have error in it.
 | Haskell            | `[start,next_element_to_infer_step..to]`                                   |
 | F#                 | `seq { start .. step .. to }`                                              |
 
-Haskell: The `[start..to]` syntax produces a list. Due to lazy evaluation of Haskell, its range semantics is different from most languages.
+Haskell: The `[start..to]` syntax produces a list. Due to lazy evaluation in Haskell, its range semantics are different from most languages.
 
 ### Support decimal steps (0.1, 0.2, 0.3, ...)
 
@@ -40,9 +40,9 @@ Define:
 
 -   Iterator: Similar to ES iterator protocol
 -   Iterable: Similar to ES objects with `[Symbol.iterator]` (e.g. has a `__iter__()` method)
--   Non-Lazy: The range generates value in a non-lazy way
--   Own: The range has it's own class / struct / ...
--   Instantiation: The range doesn't have it's own class, instead, it is implementing a more generic type like `StrideTo<int>`
+-   Non-Lazy: The range generates values in a non-lazy way
+-   Own: The range has its own class / struct / ...
+-   Instantiation: The range doesn't have its own class, instead, it is implementing a more generic type like `StrideTo<int>`
 
 | Language           | Return type               | Iterator 1️⃣ / Iterable 🔢 | Lazy |
 | ------------------ | ------------------------- | ------------------------- | ---- |
