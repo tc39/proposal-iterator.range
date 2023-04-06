@@ -2,7 +2,7 @@
 
 > Work in progress
 
-Based on the document and REPL of other languages, might have error in it.
+Based on the documentation and REPL of other languages, might have error in it.
 
 ## Semantics
 
@@ -19,7 +19,7 @@ Based on the document and REPL of other languages, might have error in it.
 | Haskell            | `[start,next_element_to_infer_step..to]`                                   |
 | F#                 | `seq { start .. step .. to }`                                              |
 
-Haskell: The `[start..to]` syntax produce a list. Due to the lazy evaluation of Haskell, it range semantics is different than most of languages.
+Haskell: The `[start..to]` syntax produces a list. Due to lazy evaluation in Haskell, its range semantics are different from most languages.
 
 ### Support decimal steps (0.1, 0.2, 0.3, ...)
 
@@ -38,11 +38,11 @@ Haskell: The `[start..to]` syntax produce a list. Due to the lazy evaluation of 
 
 Define:
 
--   Iterator: Close to ES iterator protocol
--   Iterable: Close to ES object with `[Symbol.iterator]` (e.g. has a `__iter__()` method)
--   Non-Lazy: The range generate value in a non-lazy way
--   Own: The range have it's own class / struct / ...
--   Instantiation: The range don't have it's own class, instead, it is implementing a more generic type like `StrideTo<int>`
+-   Iterator: Similar to ES iterator protocol
+-   Iterable: Similar to ES objects with `[Symbol.iterator]` (e.g. has a `__iter__()` method)
+-   Non-Lazy: The range generates values in a non-lazy way
+-   Own: The range has its own class / struct / ...
+-   Instantiation: The range doesn't have its own class, instead, it is implementing a more generic type like `StrideTo<int>`
 
 | Language           | Return type               | Iterator 1️⃣ / Iterable 🔢 | Lazy |
 | ------------------ | ------------------------- | ------------------------- | ---- |
@@ -55,9 +55,9 @@ Define:
 | Haskell            | Instantiation(`[Num]`)    | N/A                       | ✅   |
 | F#                 | Instantiation(`seq<'T>`)  | 🔢 Iterable               | ✅   |
 
--   This proposal: It doesn't have it own class currently but it have it's own prototype `%RangeIteratorPrototype%` and have unique getters on it.
--   Java: The base interface of `IntStream` (`Stream`) doesn't implements `Iterator<T>` protocol but have a `iterator()` methods that returns an Iterator. Must use with `for(int i: range.iterator())`
--   Swift (`StrideTo`): According to the [document of `StrideTo`](https://developer.apple.com/documentation/swift/strideto/1689269-lazy), laziness is opt-in.
+-   This proposal: It doesn't have its own class currently but it has its own prototype `%RangeIteratorPrototype%` and has unique getters on it.
+-   Java: The base interface of `IntStream` (`Stream`) doesn't implement `Iterator<T>` protocol but has a `iterator()` method that returns an Iterator. Must be used with `for(int i: range.iterator())`
+-   Swift (`StrideTo`): According to the [documentation of `StrideTo`](https://developer.apple.com/documentation/swift/strideto/1689269-lazy), laziness is opt-in.
 -   Rust: See <https://github.com/tc39/proposal-Number.range/issues/17#issuecomment-642064127>
 -   Haskell: No Iterator / Iterable. The laziness is in the language. `The idea of a side-effecting iterator is antithetical to the Haskell Way.` (start StackOverflow)
 
@@ -80,7 +80,7 @@ Define:
 
 ### Algorithm (for floating point number)
 
-> Generally test with range 0 to 1 with step 0.1
+> Generally tested with range 0 to 1 with step 0.1
 
 -   ➕: `thisValue = last + step`
 -   ✖: `thisValue = start + step * i`
@@ -136,7 +136,7 @@ for i in stride(from: 1.7E+308, to: (1.7E+308)+3, by: 1) {
 }
 ```
 
--   Rust: From the Rust document: `if you use an integer range and the integer overflows, it might panic in debug mode or create an endless loop in release mode.` (https://doc.rust-lang.org/std/ops/struct.RangeFrom.html)
+-   Rust: From the Rust documentation: `if you use an integer range and the integer overflows, it might panic in debug mode or create an endless loop in release mode.` (https://doc.rust-lang.org/std/ops/struct.RangeFrom.html)
 -   Haskell: Test with code
 
 ```haskell
@@ -146,7 +146,7 @@ x = 9223372036854775806 :: Int
 
 ### (Too small) Floating point error behavior
 
--   N/A: Doesn't support non integer step
+-   N/A: Doesn't support non-integer step
 
 | Language           | Behavior        |
 | ------------------ | --------------- |
@@ -208,14 +208,14 @@ e.g. `range(0, 1).includes(0.5)` should be false
 | Haskell            | No?                  | No?               |
 | F#                 | No?                  | No?               |
 
-### Omitted protocol / methods:
+### Omitted protocols / methods:
 
 Here are the common features in other languages omitted in the previous comparison because
 
 -   It represents an abstract operation on any sequence-like object but in ECMAScript we don't have a `Symbol.operation` for that.
--   In ECMAScript, compose with existing language features is enough (e.g. Python `min()` with ES `Math.min(...range)`)
--   It make no sense for a range object
--   It get covered by the Iterator helper proposal
+-   In ECMAScript, composing with existing language features is enough (e.g. Python `min()` with ES `Math.min(...range)`)
+-   It makes no sense for a range object
+-   It is covered by the Iterator helper proposal
 
 #### Python
 
@@ -231,7 +231,7 @@ Here are the common features in other languages omitted in the previous comparis
 
 #### Java
 
-`IntStream` and `LongStream`. Most of methods listed in the document seems like can be handled by the Iterator helper proposal.
+`IntStream` and `LongStream`. Most of methods listed in the documentation likely can be handled by the Iterator helper proposal.
 
 #### Swift
 
@@ -250,7 +250,7 @@ Many methods require a non-lazy semantics.
 
 #### Haskell
 
--   Most of functions are common operation to lists therefore not included.
+-   Most of functions are common operations to lists therefore not included.
 
 #### F
 
@@ -260,7 +260,7 @@ Many methods require a non-lazy semantics.
 
 1. Python means Python 3 in this document.
 
-## Reference
+## References
 
 -   Python: https://docs.python.org/3/library/stdtypes.html?#range
 -   Java: https://docs.oracle.com/javase/8/docs/api/java/util/stream/IntStream.html#range-int-int-
