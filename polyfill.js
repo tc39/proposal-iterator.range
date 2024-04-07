@@ -42,15 +42,20 @@ It should only be used to collect developers feedback about the APIs.`)
             let currentYieldingValue = start + step * currentCount
             if (currentYieldingValue === end) hitsEnd = true // @ts-ignore
             currentCount = currentCount + one
-            let endCondition = false
+            // ifIncrease && inclusiveEnd && currentYieldingValue > end
             if (ifIncrease) {
-                if (inclusiveEnd) endCondition = currentYieldingValue > end
-                else endCondition = currentYieldingValue >= end
+                if (inclusiveEnd) {
+                    if (currentYieldingValue > end) return
+                } else {
+                    if (currentYieldingValue >= end) return
+                }
             } else {
-                if (inclusiveEnd) endCondition = end > currentYieldingValue
-                else endCondition = end >= currentYieldingValue
+                if (inclusiveEnd) {
+                    if (end > currentYieldingValue) return
+                } else {
+                    if (end >= currentYieldingValue) return
+                }
             }
-            if (endCondition) return
             yield currentYieldingValue
         }
         return undefined
@@ -70,10 +75,10 @@ It should only be used to collect developers feedback about the APIs.`)
         /**
          * @param {T} start
          * @param {T | number | undefined} end
-         * @param {T | undefined | null | { step?: T, inclusive?: boolean }} option
+         * @param {T | undefined | null | { step?: T, inclusive?: boolean }} optionOrStep
          * @param {(typeof SpecValue)[keyof typeof SpecValue]} type
          */ // @ts-ignore
-        constructor(start, end, option, type) {
+        constructor(start, end, optionOrStep, type) {
             if (isNaN(start) || isNaN(end)) throw new RangeError()
             /** @type {T} */ let zero
             /** @type {T} */ let one
@@ -90,21 +95,21 @@ It should only be used to collect developers feedback about the APIs.`)
                 one = 1n
             }
             if (isInfinity(start)) throw RangeError()
-            const ifIncrease = end > start
             let inclusiveEnd = false
 
             /** @type {T} */ let step
-            if (option === undefined || option === null) step = undefined
-            else if (typeof option === "object") {
-                step = option.step
-                inclusiveEnd = Boolean(option.inclusive)
+            if (optionOrStep === undefined || optionOrStep === null) step = undefined
+            else if (typeof optionOrStep === "object") {
+                step = optionOrStep.step
+                inclusiveEnd = Boolean(optionOrStep.inclusive)
             } //
-            else if (type === SpecValue.NumberRange && typeof option === "number") step = option
-            else if (type === SpecValue.BigIntRange && typeof option === "bigint") step = option
+            else if (type === SpecValue.NumberRange && typeof optionOrStep === "number") step = optionOrStep
+            else if (type === SpecValue.BigIntRange && typeof optionOrStep === "bigint") step = optionOrStep
             else throw new TypeError()
             if (isNaN(step)) throw new RangeError()
             if (step === undefined || step === null) {
-                if (ifIncrease) step = one // @ts-ignore
+                if (end > start)
+                    step = one // @ts-ignore
                 else step = -one
             }
 
@@ -136,9 +141,11 @@ It should only be used to collect developers feedback about the APIs.`)
     Object.defineProperty(Iterator, "range", {
         configurable: true,
         writable: true,
-        value: (start, end, option) => {
-            if (typeof start === "number") return new NumericRangeIterator(start, end, option, SpecValue.NumberRange)
-            if (typeof start === "bigint") return new NumericRangeIterator(start, end, option, SpecValue.BigIntRange)
+        value: (start, end, optionOrStep) => {
+            if (typeof start === "number")
+                return new NumericRangeIterator(start, end, optionOrStep, SpecValue.NumberRange)
+            if (typeof start === "bigint")
+                return new NumericRangeIterator(start, end, optionOrStep, SpecValue.BigIntRange)
             throw new TypeError("Iterator.range only supports number and bigint.")
         },
     })

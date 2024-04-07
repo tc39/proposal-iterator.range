@@ -14,12 +14,13 @@
     },
     "license": "MIT",
     "devDependencies": {
-        "@tc39/ecma262-biblio": "2.1.2481",
-        "@types/jest": "^29.2.3",
-        "core-js": "^3.26.1",
-        "core-js-builder": "^3.26.1",
-        "ecmarkup": "^16.0.0",
-        "jest": "^29.3.1",
-        "prettier": "^2.8.0"
-    }
+        "@tc39/ecma262-biblio": "2.1.2719",
+        "@types/jest": "^29.5.12",
+        "core-js": "^3.36.1",
+        "core-js-builder": "^3.36.1",
+        "ecmarkup": "^18.3.1",
+        "jest": "^29.7.0",
+        "prettier": "^3.2.5"
+    },
+    "packageManager": "pnpm@8.15.6+sha256.01c01eeb990e379b31ef19c03e9d06a14afa5250b82e81303f88721c99ff2e6f"
 }
