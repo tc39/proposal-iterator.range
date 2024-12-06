@@ -6,6 +6,6 @@ declare var Iterator: {
     range(start: bigint, end: bigint | Infinity, option: bigint | NumericRangeOptions<bigint>): IterableIterator<bigint>
 }
 interface NumericRangeOptions<T extends bigint | number> {
-    step?: number | number
+    step?: T
     inclusive?: boolean
 }
