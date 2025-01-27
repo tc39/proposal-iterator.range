@@ -1454,6 +1454,7 @@ const counterByDepth = [];
 function addStepNumberText(
   ol,
   depth = 0,
+  indent = '',
   special = [...ol.classList].some(c => c.startsWith('nested-')),
 ) {
   let counter = !special && counterByDepth[depth];
@@ -1477,8 +1478,11 @@ function addStepNumberText(
   let i = (Number(ol.getAttribute('start')) || 1) - 1;
   for (const li of ol.children) {
     const marker = document.createElement('span');
-    marker.textContent = `${i < cache.length ? cache[i] : getTextForIndex(i)}. `;
+    const markerText = i < cache.length ? cache[i] : getTextForIndex(i);
+    const extraIndent = ' '.repeat(markerText.length + 2);
+    marker.textContent = `${indent}${markerText}. `;
     marker.setAttribute('aria-hidden', 'true');
+    marker.setAttribute('class', 'list-marker');
     const attributesContainer = li.querySelector('.attributes-tag');
     if (attributesContainer == null) {
       li.prepend(marker);
@@ -1486,7 +1490,7 @@ function addStepNumberText(
       attributesContainer.insertAdjacentElement('afterend', marker);
     }
     for (const sublist of li.querySelectorAll(':scope > ol')) {
-      addStepNumberText(sublist, depth + 1, special);
+      addStepNumberText(sublist, depth + 1, indent + extraIndent, special);
     }
     i++;
   }
@@ -1496,6 +1500,52 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('emu-alg > ol').forEach(ol => {
     addStepNumberText(ol);
   });
+});
+
+// Omit indendation when copying a single algorithm step.
+document.addEventListener('copy', evt => {
+  // Construct a DOM from the selection.
+  const doc = document.implementation.createHTMLDocument('');
+  const domRoot = doc.createElement('div');
+  const html = evt.clipboardData.getData('text/html');
+  if (html) {
+    domRoot.innerHTML = html;
+  } else {
+    const selection = getSelection();
+    const singleRange = selection?.rangeCount === 1 && selection.getRangeAt(0);
+    const container = singleRange?.commonAncestorContainer;
+    if (!container?.querySelector?.('.list-marker')) {
+      return;
+    }
+    domRoot.append(singleRange.cloneContents());
+  }
+
+  // Preserve the indentation if there is no hidden list marker, or if selection
+  // of more than one step is indicated by either multiple such markers or by
+  // visible text before the first one.
+  const listMarkers = domRoot.querySelectorAll('.list-marker');
+  if (listMarkers.length !== 1) {
+    return;
+  }
+  const treeWalker = document.createTreeWalker(domRoot, undefined, {
+    acceptNode(node) {
+      return node.nodeType === Node.TEXT_NODE || node === listMarkers[0]
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_SKIP;
+    },
+  });
+  while (treeWalker.nextNode()) {
+    const node = treeWalker.currentNode;
+    if (node.nodeType === Node.ELEMENT_NODE) break;
+    if (/\S/u.test(node.data)) return;
+  }
+
+  // Strip leading indentation from the plain text representation.
+  evt.clipboardData.setData('text/plain', domRoot.textContent.trimStart());
+  if (!html) {
+    evt.clipboardData.setData('text/html', domRoot.innerHTML);
+  }
+  evt.preventDefault();
 });
 
 'use strict';
@@ -1699,6 +1749,7 @@ body.oldtoc {
 
 span[aria-hidden='true'] {
   font-size: 0;
+  white-space: pre;
 }
 
 a {
@@ -1795,6 +1846,10 @@ var {
 var.field {
   font: inherit;
   color: inherit;
+}
+/* suppress line break opportunities between `.` and `[[FieldName]]` */
+var.field::before {
+  content: '\2060'
 }
 
 var.referenced {
@@ -3207,12 +3262,12 @@ emu-intro {
     @media print {
       @page :left {
         @bottom-right {
-          content: '© Ecma International 2024';
+          content: '© Ecma International 2025';
         }
       }
       @page :right {
         @bottom-left {
-          content: '© Ecma International 2024';
+          content: '© Ecma International 2025';
         }
       }
       @page :first {
@@ -3243,7 +3298,7 @@ emu-intro {
 </ul></div><div id="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; stroke:currentColor" viewBox="0 0 120 120" width="54" height="54">
       <title>Menu</title>
       <path stroke-width="10" stroke-linecap="round" d="M30,60 h60  M30,30 m0,5 h60  M30,90 m0,-5 h60"></path>
-    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins<button class="unpin-all">clear</button></div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">+</span><a href="#sec-control-abstraction-objects" title="Control Abstraction Objects"><span class="secnum">27</span> Control Abstraction Objects</a><ol class="toc"><li><span class="item-toggle">+</span><a href="#sec-iteration" title="Iteration"><span class="secnum">27.1</span> Iteration</a><ol class="toc"><li><span class="item-toggle">+</span><a href="#sec-properties-of-the-iterator-constructor" title="Properties of the Iterator Constructor"><span class="secnum">27.1.2</span> Properties of the Iterator Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-iterator.range" title="Iterator.range ( start, end, optionOrStep )"><span class="secnum">27.1.2.1</span> Iterator.range ( <var>start</var>, <var>end</var>, <var>optionOrStep</var> )</a></li></ol></li><li><span class="item-toggle">+</span><a href="#sec-numeric-range-iterator-object" title="The NumericRangeIterator Object"><span class="secnum">27.1.3</span> The <dfn tabindex="-1">NumericRangeIterator</dfn> Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-create-numeric-range-iterator" title="CreateNumericRangeIterator ( start, end, optionOrStep, type )"><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>optionOrStep</var>, <var>type</var> )</a></li><li><span class="item-toggle">+</span><a href="#sec-%numericrangeiteratorprototype%-object" title="The %NumericRangeIteratorPrototype% Object"><span class="secnum">27.1.3.2</span> The %NumericRangeIteratorPrototype% Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-next" title="%NumericRangeIterator%.next ( )"><span class="secnum">27.1.3.2.1</span> %NumericRangeIterator%.next ( )</a></li><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag" title="%NumericRangeIteratorPrototype%.[@@toStringTag]"><span class="secnum">27.1.3.2.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 1 Draft / December 8, 2024</h1><h1 class="title">Range proposal</h1>
+    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins<button class="unpin-all">clear</button></div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">+</span><a href="#sec-control-abstraction-objects" title="Control Abstraction Objects"><span class="secnum">27</span> Control Abstraction Objects</a><ol class="toc"><li><span class="item-toggle">+</span><a href="#sec-iteration" title="Iteration"><span class="secnum">27.1</span> Iteration</a><ol class="toc"><li><span class="item-toggle">+</span><a href="#sec-properties-of-the-iterator-constructor" title="Properties of the Iterator Constructor"><span class="secnum">27.1.2</span> Properties of the Iterator Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-iterator.range" title="Iterator.range ( start, end, optionOrStep )"><span class="secnum">27.1.2.1</span> Iterator.range ( <var>start</var>, <var>end</var>, <var>optionOrStep</var> )</a></li></ol></li><li><span class="item-toggle">+</span><a href="#sec-numeric-range-iterator-object" title="The NumericRangeIterator Object"><span class="secnum">27.1.3</span> The <dfn tabindex="-1">NumericRangeIterator</dfn> Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-create-numeric-range-iterator" title="CreateNumericRangeIterator ( start, end, optionOrStep, type )"><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>optionOrStep</var>, <var>type</var> )</a></li><li><span class="item-toggle">+</span><a href="#sec-%numericrangeiteratorprototype%-object" title="The %NumericRangeIteratorPrototype% Object"><span class="secnum">27.1.3.2</span> The %NumericRangeIteratorPrototype% Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-next" title="%NumericRangeIterator%.next ( )"><span class="secnum">27.1.3.2.1</span> %NumericRangeIterator%.next ( )</a></li><li><span class="item-toggle-none"></span><a href="#sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag" title="%NumericRangeIteratorPrototype%.[@@toStringTag]"><span class="secnum">27.1.3.2.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 1 Draft / January 27, 2025</h1><h1 class="title">Range proposal</h1>
 
 <emu-clause id="sec-control-abstraction-objects" number="27">
     <h1><span class="secnum">27</span> Control Abstraction Objects</h1>
@@ -3262,7 +3317,7 @@ emu-intro {
 
         <emu-clause id="sec-numeric-range-iterator-object">
             <h1><span class="secnum">27.1.3</span> The <dfn tabindex="-1">NumericRangeIterator</dfn> Object</h1>
-            <p>A NumericRangeIterator object is an iterator that yields numbers. There is not a named <emu-xref href="#constructor"><a href="https://tc39.es/ecma262/#constructor">constructor</a></emu-xref> for NumericRangeIterator objects. Instead, NumericRangeIterator objects are created by the <emu-xref aoid="CreateNumericRangeIterator" id="_ref_2"><a href="#sec-create-numeric-range-iterator">CreateNumericRangeIterator</a></emu-xref> abstract operation as needed.</p>
+            <p>A NumericRangeIterator object is an <emu-xref href="#sec-iterator-interface"><a href="https://tc39.es/ecma262/#sec-iterator-interface">iterator</a></emu-xref> that yields numbers. There is not a named <emu-xref href="#constructor"><a href="https://tc39.es/ecma262/#constructor">constructor</a></emu-xref> for NumericRangeIterator objects. Instead, NumericRangeIterator objects are created by the <emu-xref aoid="CreateNumericRangeIterator" id="_ref_2"><a href="#sec-create-numeric-range-iterator">CreateNumericRangeIterator</a></emu-xref> abstract operation as needed.</p>
 
             <emu-clause id="sec-create-numeric-range-iterator" type="abstract operation" aoid="CreateNumericRangeIterator">
                 <h1><span class="secnum">27.1.3.1</span> CreateNumericRangeIterator ( <var>start</var>, <var>end</var>, <var>optionOrStep</var>, <var>type</var> )</h1>
@@ -3277,7 +3332,7 @@ emu-intro {
                 <ul>
                     <li>has properties that are inherited by all <emu-xref href="#sec-numeric-range-iterator-object" id="_ref_4"><a href="#sec-numeric-range-iterator-object">NumericRangeIterator</a></emu-xref> Objects.</li>
                     <li>is an <emu-xref href="#ordinary-object"><a href="https://tc39.es/ecma262/#ordinary-object">ordinary object</a></emu-xref>.</li>
-                    <li>has a <var class="field">[[Prototype]]</var> internal slot whose value is <emu-xref href="#sec-%iteratorprototype%-object"><a href="https://tc39.es/ecma262/#sec-%iteratorprototype%-object">%IteratorPrototype%</a></emu-xref>.</li>
+                    <li>has a <var class="field">[[Prototype]]</var> internal slot whose value is %IteratorPrototype%.</li>
                     <li>has the following properties:</li>
                 </ul>
 
@@ -3287,7 +3342,7 @@ emu-intro {
                 </emu-clause>
                 <emu-clause id="sec-properties-of-the-numericrangeiterator-prototype-object-@@tostringtag">
                     <h1><span class="secnum">27.1.3.2.2</span> %NumericRangeIteratorPrototype%.[@@toStringTag]</h1>
-                    <p>The initial value of the <emu-xref href="#sec-well-known-symbols"><a href="https://tc39.es/ecma262/#sec-well-known-symbols">@@toStringTag</a></emu-xref> property is the String value <code>"NumericRangeIterator"</code>.</p>
+                    <p>The initial value of the @@toStringTag property is the String value <code>"NumericRangeIterator"</code>.</p>
                     <p>This property has the attributes { <var class="field">[[Writable]]</var>: <emu-val>false</emu-val>, <var class="field">[[Enumerable]]</var>: <emu-val>false</emu-val>, <var class="field">[[Configurable]]</var>: <emu-val>true</emu-val> }.</p>
                 </emu-clause>
             </emu-clause>

@@ -1,15 +1,14 @@
 /// <reference path="../global.d.ts" />
-require("core-js/proposals/iterator-helpers")
 require("../polyfill.js")
 
 test("Iterator.range<number>", () => {
     expect(that(Iterator.range(-1, 5))).toMatchInlineSnapshot(`"-1f, 0f, 1f, 2f, 3f, 4f"`)
     expect(that(Iterator.range(-5, 1))).toMatchInlineSnapshot(`"-5f, -4f, -3f, -2f, -1f, 0f"`)
     expect(that(Iterator.range(0, 1, 0.1))).toMatchInlineSnapshot(
-        `"0f, 0.1f, 0.2f, 0.30000000000000004f, 0.4f, 0.5f, 0.6000000000000001f, 0.7000000000000001f, 0.8f, 0.9f"`
+        `"0f, 0.1f, 0.2f, 0.30000000000000004f, 0.4f, 0.5f, 0.6000000000000001f, 0.7000000000000001f, 0.8f, 0.9f"`,
     )
     expect(that(Iterator.range(2 ** 53 - 1, 2 ** 53, { inclusive: true }))).toMatchInlineSnapshot(
-        `"9007199254740991f, 9007199254740992f"`
+        `"9007199254740991f, 9007199254740992f"`,
     )
     expect(that(Iterator.range(0, 0))).toMatchInlineSnapshot(`""`)
     expect(that(Iterator.range(0, -5, 1))).toMatchInlineSnapshot(`""`)
@@ -42,7 +41,7 @@ test("Range to infinity", () => {
 test("Use with Iterator helpers", () => {
     expect(that(Iterator.range(0, 10).take(5))).toMatchInlineSnapshot(`"0f, 1f, 2f, 3f, 4f"`)
     expect(that(Iterator.range(0, 10).map((x) => x * 2))).toMatchInlineSnapshot(
-        `"0f, 2f, 4f, 6f, 8f, 10f, 12f, 14f, 16f, 18f"`
+        `"0f, 2f, 4f, 6f, 8f, 10f, 12f, 14f, 16f, 18f"`,
     )
     expect(Iterator.range(0n, 10n).reduce((prev, curr) => prev + curr, 0n)).toMatchInlineSnapshot(`45n`)
 })
@@ -54,12 +53,12 @@ test("Be an iterator", () => {
 })
 
 test("NaN", () => {
-    expect(()=>(Iterator.range(NaN, 0))).toThrowError()
-    expect(()=>(Iterator.range(0, NaN))).toThrowError()
-    expect(()=>(Iterator.range(NaN, NaN))).toThrowError()
+    expect(() => Iterator.range(NaN, 0)).toThrowError()
+    expect(() => Iterator.range(0, NaN)).toThrowError()
+    expect(() => Iterator.range(NaN, NaN)).toThrowError()
 
-    expect(()=>(Iterator.range(0, 0, { step: NaN }))).toThrowError()
-    expect(()=>(Iterator.range(0, 5, NaN))).toThrowError()
+    expect(() => Iterator.range(0, 0, { step: NaN })).toThrowError()
+    expect(() => Iterator.range(0, 5, NaN)).toThrowError()
 })
 
 test("Step infer", () => {

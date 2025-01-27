@@ -14,7 +14,9 @@
     </head>
     <body>
         Open your console and Iterator.range is available.
-        <script src="./iterator-helper.js"></script>
+        <script>
+            if (!self.Iterator) console.error("Iterator Helper is needed.")
+        </script>
         <script src="./polyfill.js"></script>
         <script>
             globalThis.a = Iterator.range(0, 10, 1)
