@@ -18,16 +18,20 @@ contributors: Jack Works
     <emu-clause id="sec-iteration" number="1">
         <h1>Iteration</h1>
 
-        <emu-clause id="sec-properties-of-the-iterator-constructor" number="2">
-            <h1>Properties of the Iterator Constructor</h1>
+        <emu-clause id="sec-iterator-objects" number="3">
+            <h1>Iterator Objects</h1>
 
-            <emu-clause id="sec-iterator.range">
-                <h1>Iterator.range ( _start_, _end_, _optionOrStep_ )</h1>
-                <emu-alg>
-                    1. If _start_ is a Number, return ? CreateNumericRangeIterator(_start_, _end_, _optionOrStep_, ~number-range~).
-                    1. If _start_ is a BigInt, return ? CreateNumericRangeIterator(_start_, _end_, _optionOrStep_, ~bigint-range~).
-                    1. Throw a *TypeError* exception.
-                </emu-alg>
+            <emu-clause id="sec-properties-of-the-iterator-constructor" number="2">
+                <h1>Properties of the Iterator Constructor</h1>
+
+                <emu-clause id="sec-iterator.range" number="2">
+                    <h1>Iterator.range ( _start_, _end_, _optionOrStep_ )</h1>
+                    <emu-alg>
+                        1. If _start_ is a Number, return ? CreateNumericRangeIterator(_start_, _end_, _optionOrStep_, ~number-range~).
+                        1. If _start_ is a BigInt, return ? CreateNumericRangeIterator(_start_, _end_, _optionOrStep_, ~bigint-range~).
+                        1. Throw a *TypeError* exception.
+                    </emu-alg>
+                </emu-clause>
             </emu-clause>
         </emu-clause>
 
@@ -51,8 +55,8 @@ contributors: Jack Works
                     1. If _type_ is ~number-range~, then
                         1. Assert: _start_ is a Number.
                         1. If _end_ is not a Number, throw a *TypeError* exception.
-                        1. Let _zero_ be *0*<sub>ℤ</sub>.
-                        1. Let _one_ be *1*<sub>ℤ</sub>.
+                        1. Let _zero_ be *+0*<sub>𝔽</sub>.
+                        1. Let _one_ be *1*<sub>𝔽</sub>.
                     1. Else,
                         1. Assert: _start_ is a BigInt.
                         <emu-note type="editor">Allowing all kinds of number (bigint, decimals, ...) to range from a finite number to infinity.</emu-note>
@@ -73,7 +77,10 @@ contributors: Jack Works
                     1. Else,
                         1. Throw a *TypeError* exception.
                     1. If _step_ is *undefined* or *null*, then
-                        1. If _end_ &gt; _start_, let _step_ be _one_.
+                        1. If _end_ is *+∞*<sub>𝔽</sub>, let _step_ be _one_.
+                        1. Else if _end_ is *-∞*<sub>𝔽</sub>, let _step_ be -_one_.
+                        1. Assert: In the next branch, _end_ is a BigInt and _start_ is a BigInt, or _end_ is a Number and _start_ is a Number.
+                        1. Else if _end_ &gt; _start_, let _step_ be _one_.
                         1. Else let _step_ be -_one_.
                     1. If _step_ is *NaN*, throw a *RangeError* exception.
                     1. If _type_ is ~number-range~ and _step_ is not a Number, throw a *TypeError* exception.
@@ -81,11 +88,14 @@ contributors: Jack Works
                     1. If _step_ is *+∞*<sub>𝔽</sub> or *-∞*<sub>𝔽</sub>, throw a *RangeError* exception.
                     1. If _step_ is _zero_ and _start_ is not _end_, throw a *RangeError* exception.
                     1. Let _closure_ be a new Abstract Closure with no parameters that captures _start_, _end_, _step_, _inclusiveEnd_, _zero_, _one_ and performs the following steps when called:
-                        1. If _end_ &gt; _start_, let _ifIncrease_ be *true*.
+                        1. If _end_ is *+∞*<sub>𝔽</sub>, let _ifIncrease_ be *true*.
+                        1. Else if _end_ is *-∞*<sub>𝔽</sub>, let _ifIncrease_ be *false*.
+                        1. Assert: In the next branch, _end_ is a BigInt and _start_ is a BigInt, or _end_ is a Number and _start_ is a Number.
+                        1. Else if _end_ &gt; _start_, let _ifIncrease_ be *true*.
                         1. Else let _ifIncrease_ be *false*.
                         1. If _step_ &gt; _zero_, let _ifStepIncrease_ be *true*.
                         1. Else let _ifStepIncrease_ be *false*.
-                        1. If _ifIncrease_ is not _ifStepIncrease_, return *undeﬁned*.
+                        1. If _ifIncrease_ is not _ifStepIncrease_, return *undefined*.
                         1. Let _hitsEnd_ be *false*.
                         1. Let _currentCount_ be _zero_.
                         1. NOTE: You can debug these steps at https://tc39.es/proposal-Number.range/playground.html .
@@ -94,15 +104,20 @@ contributors: Jack Works
                             1. If _currentYieldingValue_ is _end_, Set _hitsEnd_ to *true*.
                             1. Set _currentCount_ to _currentCount_ + _one_.
                             1. If _ifIncrease_ is *true*, then
-                                1. If _inclusiveEnd_ is *true*, then
-                                    1. If _currentYieldingValue_ &gt; _end_, return *undefined*.
-                                1. Else,
-                                    1. If _currentYieldingValue_ &ge; _end_, return *undefined*.
+                                1. Assert: _end_ is a BigInt or *+∞*<sub>𝔽</sub> and _currentYieldingValue_ is a BigInt, or _end_ is a Number and
+                                _currentYieldingValue_ is a Number.
+                                1. If _end_ is not *+∞*<sub>𝔽</sub>, then
+                                    1. If _inclusiveEnd_ is *true*, then
+                                        1. If _currentYieldingValue_ &gt; _end_, return *undefined*.
+                                    1. Else,
+                                        1. If _currentYieldingValue_ &ge; _end_, return *undefined*.
                             1. Else,
-                                1. If _inclusiveEnd_ is *true*, then
-                                    1. If _end_ &gt; _currentYieldingValue_, return *undefined*.
-                                1. Else,
-                                    1. If _end_ &ge; _currentYieldingValue_, return *undefined*.
+                                1. Assert: _end_ is a BigInt or *-∞*<sub>𝔽</sub> and _currentYieldingValue_ is a BigInt, or _end_ is a Number and _currentYieldingValue_ is a Number.
+                                1. If _end_ is not *-∞*<sub>𝔽</sub>, then
+                                    1. If _inclusiveEnd_ is *true*, then
+                                        1. If _end_ &gt; _currentYieldingValue_, return *undefined*.
+                                    1. Else,
+                                        1. If _end_ &ge; _currentYieldingValue_, return *undefined*.
                             1. Perform ? Yield(_currentYieldingValue_).
                         1. Return *undefined*.
                     1. Return CreateIteratorFromClosure(_closure_, *"%NumericRangeIteratorPrototype%"*, %NumericRangeIteratorPrototype%).

@@ -5,6 +5,14 @@ It _will_ be changed if the specification has changed.
 It should only be used to collect developers feedback about the APIs.`)
 // This polyfill requires: globalThis, BigInt, private fields
 ;(() => {
+    /**
+     * @param {*} condition
+     * @returns {asserts condition}
+     */
+    function assert(condition) {
+        if (!condition) throw new SpecAssertError()
+    }
+    class SpecAssertError extends Error {}
     const SpecValue = {
         BigIntRange: Symbol(),
         NumberRange: Symbol(),
@@ -32,7 +40,14 @@ It should only be used to collect developers feedback about the APIs.`)
      * @param {T} one
      */
     function* NumericRangeIteratorObject(start, end, step, inclusiveEnd, zero, one) {
-        let ifIncrease = end > start
+        let ifIncrease
+        if (end === Infinity) ifIncrease = true
+        else if (end === -Infinity) ifIncrease = false
+        else {
+            assert(typeof start === typeof end)
+            if (end > start) ifIncrease = true
+            else ifIncrease = false
+        }
         let ifStepIncrease = step > zero
         if (ifIncrease !== ifStepIncrease) return
         let hitsEnd = false
@@ -44,16 +59,28 @@ It should only be used to collect developers feedback about the APIs.`)
             currentCount = currentCount + one
             // ifIncrease && inclusiveEnd && currentYieldingValue > end
             if (ifIncrease) {
-                if (inclusiveEnd) {
-                    if (currentYieldingValue > end) return
-                } else {
-                    if (currentYieldingValue >= end) return
+                assert(
+                    ((end === Infinity || typeof end === "bigint") && typeof currentYieldingValue === "bigint") ||
+                        (typeof end === "number" && typeof currentYieldingValue === "number"),
+                )
+                if (end !== Infinity) {
+                    if (inclusiveEnd) {
+                        if (currentYieldingValue > end) return
+                    } else {
+                        if (currentYieldingValue >= end) return
+                    }
                 }
             } else {
-                if (inclusiveEnd) {
-                    if (end > currentYieldingValue) return
-                } else {
-                    if (end >= currentYieldingValue) return
+                assert(
+                    ((end === -Infinity || typeof end === "bigint") && typeof currentYieldingValue === "bigint") ||
+                        (typeof end === "number" && typeof currentYieldingValue === "number"),
+                )
+                if (end !== -Infinity) {
+                    if (inclusiveEnd) {
+                        if (end > currentYieldingValue) return
+                    } else {
+                        if (end >= currentYieldingValue) return
+                    }
                 }
             }
             yield currentYieldingValue
@@ -83,12 +110,12 @@ It should only be used to collect developers feedback about the APIs.`)
             /** @type {T} */ let zero
             /** @type {T} */ let one
             if (type === SpecValue.NumberRange) {
-                // Assert: start is number
+                assert(typeof start === "number")
                 if (typeof end !== "number") throw new TypeError() // @ts-ignore
                 zero = 0 // @ts-ignore
                 one = 1
             } else {
-                // Assert: end is bigint
+                assert(typeof start === "bigint")
                 // Allowing all kinds of number (number, bigint, decimals, ...) to range from a finite number to infinity.
                 if (!isInfinity(end) && typeof end !== "bigint") throw new TypeError() // @ts-expect-error
                 zero = 0n // @ts-expect-error
@@ -108,9 +135,15 @@ It should only be used to collect developers feedback about the APIs.`)
             else throw new TypeError()
             if (isNaN(step)) throw new RangeError()
             if (step === undefined || step === null) {
-                if (end > start)
+                if (end === Infinity)
                     step = one // @ts-ignore
-                else step = -one
+                else if (end === -Infinity) step = -one
+                else {
+                    assert(typeof end === typeof start)
+                    if (end > start)
+                        step = one // @ts-ignore
+                    else step = -one
+                }
             }
 
             if (type === SpecValue.NumberRange && typeof step !== "number") throw new TypeError()
